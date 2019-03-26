@@ -21,14 +21,16 @@ ConditionFileNotEmpty=/etc/consul.d/consul.hcl
 [Service]
 User=consul
 Group=consul
+ExecStartPre=/sbin/setcap 'cap_net_bind_service=+ep' /usr/local/bin/consul
+PermissionsStartOnly=true
 ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/
-ExecReload=/usr/local/bin/consul reload
+ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
 Restart=on-failure
 LimitNOFILE=65536
 
 [Install]
-WantedBy=multi
+WantedBy=multi-user.target
 """
 
 Create_Consul_Config_File = """
@@ -334,14 +336,15 @@ for datacenter in config:
             "sudo complete -C /usr/local/bin/consul consul", True)
         node.ExecCommand(config_hcl, True)
         node.ExecCommand(Create_Consul_Service_Command, True)
-        node.ExecCommand(
-            "sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/consul", True)
+        # node.ExecCommand(
+        #     "sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/consul", True)
 
         if n['Server'] == "consul":
             print(
                 "DNS on port 53 for Consul node \"%s\" selected, disabling systemd-resolved service" % n['hostname'])
             node.ExecCommand("sudo systemctl stop systemd-resolved", True)
             node.ExecCommand("sudo systemctl disable systemd-resolved", True)
+            node.ExecCommand("sudo rm -f /etc/resolv.conf", True)
         else:
             print(
                 "DNS forwarding set on port 53 for node \"%s\", updating Domain in resolved.conf" % n['hostname'])
