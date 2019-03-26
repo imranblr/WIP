@@ -77,6 +77,8 @@ ConditionFileNotEmpty=/etc/vault.d/vault.hcl
 [Service]
 User=vault
 Group=vault
+ExecStartPre=/sbin/setcap 'cap_ipc_lock=+ep' /usr/local/bin/vault
+PermissionsStartOnly=true
 ExecStart=/usr/local/bin/vault server -config=/etc/vault.d/ -log-level=info
 ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
@@ -465,6 +467,8 @@ for datacenter in config:
             node.SendFile(vaultBinary, "vault")
             print("Succesfully Coppied vault Binary to node:%s " % n['hostname'])
 
+            # node.ExecCommand(
+            #     "sudo setcap 'cap_ipc_lock=+ep' /usr/local/bin/vault", True)
             config_vault = str(Create_Vault_Config_File)
             config_vault = config_vault.replace(
                 "@@@TLS@@@", "true")
@@ -504,7 +508,8 @@ for datacenter in config:
     for n in consul_nodes:
         node = n['node_client']
         if n['Server'] == 'vault':
-            vault_secrets = node.ExecCommand("sudo vault operator init |tee Vault.Secrets", True)
+            vault_secrets = node.ExecCommand(
+                "sudo vault operator init -address=\"http://127.0.0.1:8200\" |tee Vault.Secrets", True)
             print("Saved on node: %s file Vault.Secrets" % n['hostname'], "\n")
             with open('Vault.Secrets', 'w') as the_file:
                 the_file.writelines(vault_secrets['out'])
