@@ -101,6 +101,7 @@ listener "tcp" {
 storage "consul" {
   address = "127.0.0.1:8500"
   path    = "vault/"
+  token = "@@@VAULT_TOKEN@@@"
 }
 
 api_addr = "http://@@@VAULT_SERVER_IP@@@:8200"
@@ -113,13 +114,8 @@ cat << EOM | sudo tee agent_policy_file.hcl
 node_prefix "" {
    policy = "write"
 }
-
 service_prefix "" {
    policy = "read"
-}
-
-key_prefix "_rexec" {
-  policy = "write"
 }
 EOM
 """
@@ -129,12 +125,32 @@ cat << EOM | sudo tee anonymous_policy_file.hcl
 node_prefix "" {
    policy = "read"
 }
-
 service_prefix "" {
    policy = "read"
 }
 EOM
 """
+
+Vault_Policy_File = """
+cat << EOM | sudo tee vault_policy_file.hcl
+key_prefix "vault/" {
+    policy = "write"
+}
+node_prefix "" {
+    policy = "write"
+}
+service "vault" {
+    policy = "write"
+}
+agent_prefix "" {
+    policy = "write"
+}
+session_prefix "" {
+    policy = "write"
+}
+EOM
+"""
+
 
 config = None
 try:
@@ -366,10 +382,14 @@ for datacenter in config:
 
     agent_policy_command = str(Agent_Policy_File)
     anonymous_policy_command = str(Anonymous_Policy_File)
-    agent_token = None
+    vault_policy_command = str(Vault_Policy_File)
     mtoken = None
     atoken = None
+    vtoken = None
+    anonymous_id = "00000000-0000-0000-0000-000000000002"
     master_token = None
+    agent_token = None
+    vault_token = None
     # regexp = r'SecretID : ([^\n]+)'
     regexp = r'out\': \[\'([^\\n\'\]]+)'
 
@@ -408,8 +428,21 @@ for datacenter in config:
 
                 node.ExecCommand(anonymous_policy_command, True)
                 node.ExecCommand(
-                    "consul acl policy update -name 'anonymous' -rules @anonymous_policy_file.hcl -token %s"
+                    "consul acl policy create -name 'anonymous' -rules @anonymous_policy_file.hcl -token %s"
                     % master_token)
+                atoken = re.findall(regexp, str(node.ExecCommand(
+                    "consul acl token update -policy-name 'anonymous' -id %s "
+                    "-token %s |awk 'FNR == 2 {print $2}'" % (anonymous_id, master_token))))
+
+                node.ExecCommand(vault_policy_command, True)
+                node.ExecCommand(
+                    "consul acl policy create -name 'vault_policy' -rules @vault_policy_file.hcl -token %s"
+                    % master_token)
+                vtoken = re.findall(regexp, str(node.ExecCommand(
+                    "consul acl token create -policy-name 'vault_policy' -token %s |awk 'FNR == 2 {print $2}'"
+                    % master_token)))
+                vault_token = vtoken[0].strip()
+
         print(" Agent Token:", agent_token, "\n", "Master Token:", master_token)
         break
     if agent_token is not None:
@@ -435,6 +468,8 @@ for datacenter in config:
             config_vault = str(Create_Vault_Config_File)
             config_vault = config_vault.replace(
                 "@@@TLS@@@", "true")
+            config_vault = config_vault.replace(
+                "@@@VAULT_TOKEN@@@", "%s" % vault_token)
             config_vault = config_vault.replace(
                 "@@@VAULT_SERVER_IP@@@", "%s" % n['ip_address'])
             n['config_vault_command'] = config_vault
