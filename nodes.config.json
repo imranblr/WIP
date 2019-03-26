@@ -1,0 +1,77 @@
+[
+  {
+    "domain": "consul",
+    "datacenter_default_dns_resolvers": [
+      "192.168.192.1"
+    ],
+    "consul_nodes": [
+      {
+        "ssh_port": "22",
+        "Server": true,
+        "LogLevel": "INFO",
+        "DNS_PORT_53": true,
+        "ssh_username": "vagrant",
+        "ip_address": "172.20.20.11",
+        "ethernet_interface_name": "enp0s8",
+        "UI": true,
+        "ssh_keyfile": "/home/imran/VagrantProjects/Infra/.vagrant/machines/consul01/virtualbox/private_key",
+        "hostname": "consul01",
+        "ssh_password": null
+      },
+      {
+        "ssh_port": "22",
+        "Server": true,
+        "LogLevel": "INFO",
+        "DNS_PORT_53": true,
+        "ssh_username": "vagrant",
+        "ip_address": "172.20.20.12",
+        "ethernet_interface_name": "enp0s8",
+        "UI": true,
+        "ssh_keyfile": "/home/imran/VagrantProjects/Infra/.vagrant/machines/consul02/virtualbox/private_key",
+        "hostname": "consul02",
+        "ssh_password": null
+      },
+      {
+        "ssh_port": "22",
+        "Server": true,
+        "LogLevel": "INFO",
+        "DNS_PORT_53": true,
+        "ssh_username": "vagrant",
+        "ip_address": "172.20.20.13",
+        "ethernet_interface_name": "enp0s8",
+        "UI": true,
+        "ssh_keyfile": "/home/imran/VagrantProjects/Infra/.vagrant/machines/consul03/virtualbox/private_key",
+        "hostname": "consul03",
+        "ssh_password": null
+      },
+      {
+        "ssh_port": "22",
+        "Server": null,
+        "LogLevel": "INFO",
+        "DNS_PORT_53": null,
+        "ssh_username": "vagrant",
+        "ip_address": "172.20.20.16",
+        "ethernet_interface_name": "enp0s8",
+        "UI": null,
+        "ssh_keyfile": "/home/imran/VagrantProjects/Infra/.vagrant/machines/vault01/virtualbox/private_key",
+        "hostname": "vault01",
+        "ssh_password": null
+      },
+      {
+        "ssh_port": "22",
+        "Server": null,
+        "LogLevel": "INFO",
+        "DNS_PORT_53": null,
+        "ssh_username": "vagrant",
+        "ip_address": "172.20.20.17",
+        "ethernet_interface_name": "enp0s8",
+        "UI": null,
+        "ssh_keyfile": "/home/imran/VagrantProjects/Infra/.vagrant/machines/vault02/virtualbox/private_key",
+        "hostname": "vault02",
+        "ssh_password": null
+      }
+    ],
+    "gosip_encryption_key": "t1LLqeMGLDnmebTMKfjeOA==",
+    "datacenter_name": "dc1"
+  }
+]
