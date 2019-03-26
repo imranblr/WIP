@@ -5,9 +5,9 @@ import os
 import time
 import copy
 import re
-import uuid
-consulBinary = "/home/imran/VagrantProjects/Infra/automation/binaries/consul"
-vaultBinary = "/home/imran/VagrantProjects/Infra/automation/binaries/vault"
+
+consulBinary = os.getcwd() + "/binaries/consul"
+vaultBinary = os.getcwd() + "/binaries/vault"
 
 Create_Consul_Service_Command = """
 cat << EOM | sudo tee /etc/systemd/system/consul.service
@@ -194,11 +194,11 @@ for datacenter in config:
     dc_domain = datacenter['domain']
     dc_gosip_encryption_key = datacenter['gosip_encryption_key']
 
-    consul_nodes = datacenter['consul_nodes']
+    nodes = datacenter['nodes']
     totalConsulServers = 0
     totalVaultServers = 0
     retry_join_string = ""
-    for n in consul_nodes:
+    for n in nodes:
         if n['Server'] == "consul":
             totalConsulServers += 1
             retry_join_string += '"' + n['ip_address'] + '"' + ", "
@@ -213,17 +213,17 @@ for datacenter in config:
         exit(1)
 
     join_string = ""
-    for cn in consul_nodes:
+    for cn in nodes:
         join_string += cn['ip_address'] + " "
 
-    for n in consul_nodes:
+    for n in nodes:
         newNode = None
         if n['ssh_password']:
             newNode = node(n['ip_address'], n['ssh_port'],
                            n['ssh_username'], password=n['ssh_password'])
         elif n['ssh_keyfile']:
             newNode = node(n['ip_address'], n['ssh_port'],
-                           n['ssh_username'], keyfile=n['ssh_keyfile'])
+                           n['ssh_username'], keyfile=os.getcwd() + "/" + n['ssh_keyfile'])
         print("Testing Connection Node: %s" % n['hostname'])
         if newNode:
             if newNode.Connect():
@@ -234,7 +234,7 @@ for datacenter in config:
                 # print(newNode.ExecCommand("apt update", True))
                 # exit(0)
     # Copy Consul Binary for each node
-    for n in consul_nodes:
+    for n in nodes:
         node = n['node_client']
         'node type: node'
         if not os.path.exists(consulBinary):
@@ -356,26 +356,26 @@ for datacenter in config:
         if RequiresReboot:
             print("Node %s going to reboot now" % n['hostname'])
 
-    for n in consul_nodes:
+    for n in nodes:
         node = n['node_client']
         print('Starting Consul Service on node: %s' % n['hostname'])
         node.ExecCommand("sudo service consul start", True)
     print("Sleeping for 5 seconds until cluster is ready and bootstraped...")
     time.sleep(5)
-    for n in consul_nodes:
+    for n in nodes:
         if n['Server'] == "consul":
             node = n['node_client']
             node.ExecCommand("sudo consul join %s" % join_string)
             break
     print("Enabling ACL on all nodes and restarting the servers...")
-    for n in consul_nodes:
+    for n in nodes:
         node = n['node_client']
         n['config_hcl_command'] = n['config_hcl_command'].replace("#@@@ACL_ENABLE@@@", "enabled = true")
         # TODO: Change confiuration file to
         # node.ExecCommand(n['config_hcl_command'].replace("#@@@ACL_ENABLE@@@", "enabled = true"), True)
         node.ExecCommand(n['config_hcl_command'], True)
         # print("For %s :" % n['hostname'], "\n", n['config_hcl_command'], "\n")
-    for n in consul_nodes:
+    for n in nodes:
         node = n['node_client']
         node.ExecCommand("sudo service consul restart", True)
     print("Sleeping for another 5 seconds until ACL is ready...")
@@ -395,7 +395,7 @@ for datacenter in config:
     # regexp = r'SecretID : ([^\n]+)'
     regexp = r'out\': \[\'([^\\n\'\]]+)'
 
-    for n in consul_nodes:
+    for n in nodes:
         if n['Server'] == "consul":
             node = n['node_client']
             result = node.ExecCommand("sudo consul acl bootstrap |tee Master.Token", True)
@@ -406,7 +406,7 @@ for datacenter in config:
                 print("Saved Master.Token locally")
             # print(''.join(result['out']), "\n", result, "\n", result['out'])
             #     break
-    # for n in consul_nodes:
+    # for n in nodes:
     #     if n['Server'] == "consul":
     #         node = n['node_client']
             print("Creating Agent_Token and its associated policies..")
@@ -448,7 +448,7 @@ for datacenter in config:
         print(" Agent Token:", agent_token, "\n", "Master Token:", master_token)
         break
     if agent_token is not None:
-        for n in consul_nodes:
+        for n in nodes:
             node = n['node_client']
             n['config_hcl_command'] = n['config_hcl_command'].replace("@@@AGENT_TOKEN@@@", "%s" % agent_token)
             # TODO: Change confiuration file to
@@ -458,7 +458,7 @@ for datacenter in config:
             print("Sleeping for another 2 seconds until Agent Token is updated...")
             time.sleep(2)
 
-    for n in consul_nodes:
+    for n in nodes:
         node = n['node_client']
         if n['Server'] == 'vault':
             if not os.path.exists(vaultBinary):
@@ -505,7 +505,7 @@ for datacenter in config:
             print("Sleeping for 5 seconds until Vault Server %s is ready..." % n['hostname'])
             time.sleep(5)
 
-    for n in consul_nodes:
+    for n in nodes:
         node = n['node_client']
         if n['Server'] == 'vault':
             vault_secrets = node.ExecCommand(
