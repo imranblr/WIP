@@ -9,7 +9,7 @@ import uuid
 consulBinary = "/home/imran/VagrantProjects/Infra/automation/binaries/consul"
 vaultBinary = "/home/imran/VagrantProjects/Infra/automation/binaries/vault"
 
-Create_Service_Command = """
+Create_Consul_Service_Command = """
 cat << EOM | sudo tee /etc/systemd/system/consul.service
 [Unit]
 Description="HashiCorp Consul - A service mesh solution"
@@ -31,8 +31,7 @@ LimitNOFILE=65536
 WantedBy=multi
 """
 
-
-Create_Consul_Server_Config_File = """
+Create_Consul_Config_File = """
 cat << EOM | sudo tee /etc/consul.d/consul.hcl
 datacenter = "@@@DATACENTER_NAME@@@"
 data_dir = "/opt/consul"
@@ -52,9 +51,9 @@ acl = {
   default_policy = "deny"
   down_policy = "extend-cache"
   tokens = {
-      default = "@@@AGENT_TOKEN@@@"
+      agent = "@@@AGENT_TOKEN@@@"
   }
-  
+
 }
 addresses = {
    http = "0.0.0.0"
@@ -67,6 +66,48 @@ ports = { dns = 53 }
 EOM
 """
 
+Create_Vault_Service_Command = """
+cat << EOM | sudo tee /etc/systemd/system/vault.service
+[Unit]
+Description="HashiCorp Vault secret management tool"
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/vault.d/vault.hcl
+
+[Service]
+User=vault
+Group=vault
+ExecStart=/usr/local/bin/vault server -config=/etc/vault.d/ -log-level=info
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+
+
+Create_Vault_Config_File = """
+cat << EOM | sudo tee /etc/vault.d/vault.hcl
+
+listener "tcp" {
+  address          = "0.0.0.0:8200"
+  cluster_address  = "@@@VAULT_SERVER_IP@@@:8201"
+  tls_disable      = "@@@TLS@@@"
+}
+
+storage "consul" {
+  address = "127.0.0.1:8500"
+  path    = "vault/"
+}
+
+api_addr = "http://@@@VAULT_SERVER_IP@@@:8200"
+cluster_addr = "https://@@@VAULT_SERVER_IP@@@:8201"
+EOM
+"""
+
 Agent_Policy_File = """
 cat << EOM | sudo tee agent_policy_file.hcl
 node_prefix "" {
@@ -74,7 +115,23 @@ node_prefix "" {
 }
 
 service_prefix "" {
-   policy = "write"
+   policy = "read"
+}
+
+key_prefix "_rexec" {
+  policy = "write"
+}
+EOM
+"""
+
+Anonymous_Policy_File = """
+cat << EOM | sudo tee anonymous_policy_file.hcl
+node_prefix "" {
+   policy = "read"
+}
+
+service_prefix "" {
+   policy = "read"
 }
 EOM
 """
@@ -121,14 +178,20 @@ for datacenter in config:
 
     consul_nodes = datacenter['consul_nodes']
     totalConsulServers = 0
+    totalVaultServers = 0
     retry_join_string = ""
     for n in consul_nodes:
-        if n['Server']:
+        if n['Server'] == "consul":
             totalConsulServers += 1
             retry_join_string += '"' + n['ip_address'] + '"' + ", "
+        elif n['Server'] == "vault":
+            totalVaultServers += 1
 
     if totalConsulServers < 3:
         print("Invalid number of consul nodes, minimum 3, recommened 5")
+        exit(1)
+    elif totalVaultServers < 2:
+        print("Invalid number of vault nodes, minimum 2")
         exit(1)
 
     join_string = ""
@@ -160,7 +223,8 @@ for datacenter in config:
             print("Cannot find consul binary")
         # we have to create a real config.hcl string now
         # make a copy of the original string
-        config_hcl = str(Create_Consul_Server_Config_File)
+
+        config_hcl = str(Create_Consul_Config_File)
 
         config_hcl = config_hcl.replace(
             "@@@DATACENTER_NAME@@@", dc_name)
@@ -173,7 +237,7 @@ for datacenter in config:
             config_hcl = config_hcl.replace(
                 "@@@CONSUL_UI@@@", "false")
 
-        if n['Server']:
+        if n['Server'] == "consul":
             config_hcl = config_hcl.replace(
                 "@@@IS_SERVER@@@", "true")
             config_hcl = config_hcl.replace(
@@ -225,7 +289,7 @@ for datacenter in config:
         node.SendFile(consulBinary, "consul")
         print("Succesfully Coppied Consul Binary to node:%s " % n['hostname'])
         node.ExecCommand("sudo apt install -y unzip curl jq dnsutils uuid", True)
-        node.ExecCommand("sudo rm -rf /opt/consul", True)
+        # node.ExecCommand("sudo rm -rf /opt/consul", True)
         result = node.ExecCommand("hostname")
         if result['out'][0].strip() != n['hostname']:
             print("Original hostname is: %s, Wanted Hostname: %s, We have to change it" % (
@@ -236,6 +300,8 @@ for datacenter in config:
         node.ExecCommand("sudo systemctl stop consul", True)
         node.ExecCommand("sudo hostnamectl set-hostname", True)
         node.ExecCommand("sudo mkdir --parents /opt/consul", True)
+        node.ExecCommand(
+            "sudo useradd --system --home /etc/consul.d --shell /bin/false consul", True)
         node.ExecCommand("sudo chown --recursive consul:consul /opt/consul", True)
         node.ExecCommand("sudo rm -rf /opt/consul/*", True)
         node.ExecCommand("sudo chmod a+x consul")
@@ -243,21 +309,19 @@ for datacenter in config:
         node.ExecCommand("sudo mkdir /etc/consul.d", True)
         node.ExecCommand("sudo chmod a+w /etc/consul.d", True)
         node.ExecCommand(
-            "sudo useradd --system --home /etc/consul.d --shell /bin/false consul", True)
-        node.ExecCommand(
             "sudo chown --recursive consul:consul /etc/consul.d", True)
         node.ExecCommand(
             "sudo consul -autocomplete-install", True)
         node.ExecCommand(
             "sudo complete -C /usr/local/bin/consul consul", True)
         node.ExecCommand(config_hcl, True)
-        node.ExecCommand(Create_Service_Command, True)
+        node.ExecCommand(Create_Consul_Service_Command, True)
         node.ExecCommand(
             "sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/consul", True)
 
-        if n['Server']:
+        if n['Server'] == "consul":
             print(
-                "DNS on port 53 for node \"%s\" selected, disabling systemd-resolved service" % n['hostname'])
+                "DNS on port 53 for Consul node \"%s\" selected, disabling systemd-resolved service" % n['hostname'])
             node.ExecCommand("sudo systemctl stop systemd-resolved", True)
             node.ExecCommand("sudo systemctl disable systemd-resolved", True)
         else:
@@ -281,7 +345,7 @@ for datacenter in config:
     print("Sleeping for 5 seconds until cluster is ready and bootstraped...")
     time.sleep(5)
     for n in consul_nodes:
-        if n['Server']:
+        if n['Server'] == "consul":
             node = n['node_client']
             node.ExecCommand("sudo consul join %s" % join_string)
             break
@@ -301,6 +365,7 @@ for datacenter in config:
     print("running ACL bootstrap on first server node")
 
     agent_policy_command = str(Agent_Policy_File)
+    anonymous_policy_command = str(Anonymous_Policy_File)
     agent_token = None
     mtoken = None
     atoken = None
@@ -309,18 +374,18 @@ for datacenter in config:
     regexp = r'out\': \[\'([^\\n\'\]]+)'
 
     for n in consul_nodes:
-        if n['Server']:
+        if n['Server'] == "consul":
             node = n['node_client']
             result = node.ExecCommand("sudo consul acl bootstrap |tee Master.Token", True)
-            # print(result)
+            print("Saved on node: %s file Master.Token" % n['hostname'], "\n")
+
             with open('Master.token', 'w') as the_file:
                 the_file.writelines(result['out'])
                 print("Saved Master.Token locally")
             # print(''.join(result['out']), "\n", result, "\n", result['out'])
-            print("Saved on node: %s file Master.Token" % n['hostname'], "\n")
-    #     break
+            #     break
     # for n in consul_nodes:
-    #     if n['Server']:
+    #     if n['Server'] == "consul":
     #         node = n['node_client']
             print("Creating Agent_Token and its associated policies..")
             # with open('Master.token', 'r') as the_file:
@@ -340,7 +405,12 @@ for datacenter in config:
                     "consul acl token create -policy-name 'agent_policy' -token %s |awk 'FNR == 2 {print $2}'"
                     % master_token)))
                 agent_token = atoken[0].strip()
-        print("Agent Token:", agent_token, "\n", "Master Token:", master_token)
+
+                node.ExecCommand(anonymous_policy_command, True)
+                node.ExecCommand(
+                    "consul acl policy update -name 'anonymous' -rules @anonymous_policy_file.hcl -token %s"
+                    % master_token)
+        print(" Agent Token:", agent_token, "\n", "Master Token:", master_token)
         break
     if agent_token is not None:
         for n in consul_nodes:
@@ -352,6 +422,61 @@ for datacenter in config:
             node.ExecCommand("sudo service consul restart", True)
             print("Sleeping for another 2 seconds until Agent Token is updated...")
             time.sleep(2)
+
+    for n in consul_nodes:
+        node = n['node_client']
+        if n['Server'] == 'vault':
+            if not os.path.exists(vaultBinary):
+                print("Cannot find vault binary")
+
+            node.SendFile(vaultBinary, "vault")
+            print("Succesfully Coppied vault Binary to node:%s " % n['hostname'])
+
+            config_vault = str(Create_Vault_Config_File)
+            config_vault = config_vault.replace(
+                "@@@TLS@@@", "true")
+            config_vault = config_vault.replace(
+                "@@@VAULT_SERVER_IP@@@", "%s" % n['ip_address'])
+            n['config_vault_command'] = config_vault
+            node.ExecCommand("sudo systemctl stop vault", True)
+            # node.ExecCommand("sudo rm -rf /opt/vault", True)
+            node.ExecCommand("sudo mkdir --parents /opt/vault", True)
+            node.ExecCommand(
+                "sudo useradd --system --home /etc/vault.d --shell /bin/false vault", True)
+            node.ExecCommand("sudo chown --recursive vault:vault /opt/vault", True)
+            node.ExecCommand("sudo rm -rf /opt/vault/*", True)
+            node.ExecCommand("sudo chmod a+x vault")
+            node.ExecCommand("sudo mv vault /usr/local/bin", True)
+            node.ExecCommand("sudo mkdir /etc/vault.d", True)
+            node.ExecCommand("sudo chmod a+w /etc/vault.d", True)
+            node.ExecCommand(
+                "sudo chown --recursive vault:vault /etc/vault.d", True)
+            node.ExecCommand(
+                "sudo vault -autocomplete-install", True)
+            node.ExecCommand(
+                "sudo complete -C /usr/local/bin/vault vault", True)
+            node.ExecCommand(config_vault, True)
+            node.ExecCommand(Create_Vault_Service_Command, True)
+
+            node.ExecCommand("sudo systemctl enable vault", True)
+            node.ExecCommand("sudo systemctl daemon-reload", True)
+            node.ExecCommand("sudo service vault stop", True)
+            print('Starting Vault Service on node: %s' % n['hostname'])
+            node.ExecCommand("sudo service vault start", True)
+            print("Sleeping for 5 seconds until Vault Server %s is ready..." % n['hostname'])
+            time.sleep(5)
+
+    for n in consul_nodes:
+        node = n['node_client']
+        if n['Server'] == 'vault':
+            vault_secrets = node.ExecCommand("sudo vault operator init |tee Vault.Secrets", True)
+            print("Saved on node: %s file Vault.Secrets" % n['hostname'], "\n")
+            with open('Vault.Secrets', 'w') as the_file:
+                the_file.writelines(vault_secrets['out'])
+                print("Saved Vault.Secrets locally")
+            break
+
+
 
 if UpDateConfigFileWhenFinished:
     print("updating original nodes.config.json with updated configurations")
