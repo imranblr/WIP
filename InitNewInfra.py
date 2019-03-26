@@ -519,7 +519,30 @@ for datacenter in config:
                 print("Saved Vault.Secrets locally")
             break
 
-
+    regexp1 = r'Unseal Key [\d]+: ([^\n]+)'
+    regexp2 = r'Initial Root Token: ([^\n]+)'
+    i = 0
+    keys = []
+    with open('Vault.Secrets', 'r') as the_file:
+        for line in the_file:
+            if "Unseal" in line:
+                keys.append(re.findall(regexp1, line))
+                # m = keys[i]
+                # print(m[0].strip())
+                i += 1
+            if "Root Token" in line:
+                rtoken=re.findall(regexp2, line)
+                # print(rtoken[0])
+    for n in nodes:
+        node = n['node_client']
+        if n['Server'] == 'vault':
+            print("Unsealing Vault on node: %s..." % n['hostname'])
+            node.ExecCommand(
+                "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[1][0], True)
+            node.ExecCommand(
+                "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[2][0], True)
+            node.ExecCommand(
+                "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[3][0], True)
 
 if UpDateConfigFileWhenFinished:
     print("updating original nodes.config.json with updated configurations")
