@@ -8,6 +8,7 @@ import re
 
 consulBinary = os.getcwd() + "/binaries/consul"
 vaultBinary = os.getcwd() + "/binaries/vault"
+tlsCerts = os.getcwd() + "/tlsCerts/"
 
 Create_Consul_Service_Command = """
 cat << EOM | sudo tee /etc/systemd/system/consul.service
@@ -151,6 +152,20 @@ agent_prefix "" {
 }
 session_prefix "" {
     policy = "write"
+}
+EOM
+"""
+
+TLS_Config_File = """
+cat << EOM | sudo tee tls_config_file.json
+{ 
+"verify_incoming": true, 
+"verify_outgoing": true, 
+"verify_server_hostname": true, 
+"ca_file": "consul-agent-ca.pem", 
+"cert_file": "@@@TLS_CERT@@@", 
+"key_file": "@@@TLS_KEY@@@", 
+"ports": { "http": -1, "https": 8501 } 
 }
 EOM
 """
@@ -543,6 +558,68 @@ for datacenter in config:
                 "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[2][0], True)
             node.ExecCommand(
                 "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[3][0], True)
+
+    tls_config_command = str(TLS_Config_File)
+    status_str = None
+    for n in nodes:
+        node = n['node_client']
+        if n['Server'] == 'vault':
+            print("Enabling Consul Engine on Vault for ACL Management")
+            node.ExecCommand("vault status -address=\"http://127.0.0.1:8200\" | tee Vault.Status")
+            with open("Vault.Status", 'r') as the_file:
+                status_str = the_file.read()
+                if re.search("active", status_str):
+                    node.ExecCommand("vault login %s" % rtoken[0])
+                    node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" consul")
+                    node.ExecCommand("vault write consul/config/access address=127.0.0.1:8500 token=%s" % master_token)
+                    break
+    num1 = 0
+    num2 = 0
+    num3 = 0
+    for n in nodes:
+        node = n['node_client']
+        print("Configuring Consul Built-in TLS...")
+        if n['Server'] == 'consul':
+            if totalConsulServers > num1:
+                if num1 == 0:
+                    node.ExecCommand("consul tls ca create")
+                    node.ExecCommand("consul tls cert create -server")
+                    node.ExecCommand("consul tls cert create -client")
+                    node.GetFile("*.pem", tlsCerts + "/*.pem")
+                    num1 += 1
+                else:
+                    node.ExecCommand("consul tls cert create -server")
+                    node.ExecCommand("consul tls cert create -client")
+                    node.GetFile("*.pem", tlsCerts + "/*.pem")
+                    num1 += 1
+
+                node.SendFile(tlsCerts + "consul-agent-ca.pem", "/etc/consul.d/consul-agent-ca.pem")
+                tls_cert = primary_dc_name + "-server-consul-" + num2 + ".pem"
+                tls_key = primary_dc_name + "-server-consul-" + num2 + "-key.pem"
+
+                node.SendFile(tlsCerts + tls_cert, "/etc/consul.d/%s" % tls_cert)
+                node.SendFile(tlsCerts + tls_key, "/etc/consul.d/%s" % tls_key)
+                print("Succesfully Coppied TLS Certs to node:%s " % n['hostname'])
+
+                n['tls_config_command'] = tls_config_command.replace("@@@TLS_CERT@@@", "%s" % tls_cert)
+                n['tls_config_command'] = tls_config_command.replace("@@@TLS_KEY@@@", "%s" % tls_key)
+
+                node.ExecCommand(n['tls_config_command'], True)
+                num2 += 1
+        if n['Server'] == 'vault':
+            node.SendFile(tlsCerts + "consul-agent-ca.pem", "/etc/consul.d/consul-agent-ca.pem")
+            tls_cert = primary_dc_name + "-client-consul-" + num3 + ".pem"
+            tls_key = primary_dc_name + "-client-consul-" + num3 + "-key.pem"
+
+            node.SendFile(tlsCerts + tls_cert, "/etc/consul.d/%s" % tls_cert)
+            node.SendFile(tlsCerts + tls_key, "/etc/consul.d/%s" % tls_key)
+            print("Succesfully Coppied TLS Certs to node:%s " % n['hostname'])
+
+            n['tls_config_command'] = tls_config_command.replace("@@@TLS_CERT@@@", "%s" % tls_cert)
+            n['tls_config_command'] = tls_config_command.replace("@@@TLS_KEY@@@", "%s" % tls_key)
+
+            node.ExecCommand(n['tls_config_command'], True)
+            num3 += 1
 
 if UpDateConfigFileWhenFinished:
     print("updating original nodes.config.json with updated configurations")
