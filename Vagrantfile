@@ -17,7 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "consul01" do |consul01|
     consul01.vm.hostname = "consul01"
     # Forward Consul web and api port 8500
-    consul01.vm.network "forwarded_port", guest: 8500, host: 8511
+    consul01.vm.network "forwarded_port", guest: 8501, host: 8511
       # n1.ssh.username = "root"
       # n1.ssh.password = "P@ssw0rd"
       # n1.ssh.keys_only = false
@@ -28,7 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "consul02" do |consul02|
     consul02.vm.hostname = "consul02"
     # Forward Consul web and api port 8500
-    consul02.vm.network "forwarded_port", guest: 8500, host: 8512
+    consul02.vm.network "forwarded_port", guest: 8501, host: 8512
       # n2.ssh.username = "root"
       # n2.ssh.password = "P@ssw0rd"
       # n2.ssh.keys_only = false
@@ -39,7 +39,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "consul03" do |consul03|
     consul03.vm.hostname = "consul03"
     # Forward Consul web and api port 8500
-    consul03.vm.network "forwarded_port", guest: 8500, host: 8513
+    consul03.vm.network "forwarded_port", guest: 8501, host: 8513
       # n3.ssh.username = "root"
       # n3.ssh.password = "P@ssw0rd"
       # n3.ssh.keys_only = false
@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "vault01" do |vault01|
     vault01.vm.hostname = "vault01"
     # Forward Vault web and api port 8200
-    vault01.vm.network "forwarded_port", guest: 8200, host: 8211
+    vault01.vm.network "forwarded_port", guest: 8201, host: 8211
     # n6.ssh.username = "root"
     # n6.ssh.password = "P@ssw0rd"
     # n6.ssh.keys_only = false
@@ -61,7 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "vault02" do |vault02|
     vault02.vm.hostname = "vault02"
     # Forward Vault web and api port 8200
-    vault02.vm.network "forwarded_port", guest: 8200, host: 8212
+    vault02.vm.network "forwarded_port", guest: 8201, host: 8212
     # n7.ssh.username = "root"
     # n7.ssh.password = "P@ssw0rd"
     # n7.ssh.keys_only = false
