@@ -96,7 +96,7 @@ WantedBy=multi-user.target
 
 Create_Vault_Config_File = """
 cat << EOM | sudo tee /etc/vault.d/vault.hcl
-
+ui = true
 listener "tcp" {
   address          = "0.0.0.0:8200"
   cluster_address  = "@@@VAULT_SERVER_IP@@@:8201"
@@ -113,6 +113,47 @@ api_addr = "http://@@@VAULT_SERVER_IP@@@:8200"
 cluster_addr = "https://@@@VAULT_SERVER_IP@@@:8201"
 EOM
 """
+
+Create_Nginx_Index_File = """
+cat << EOM | sudo tee /var/www/html/index.html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+</head>
+<body>
+<h1>You're at @@@NGINX-HOST@@@ Server!</h1>
+</body>
+</html>
+EOM
+"""
+
+Create_Nginx_Service_Command = """
+cat << EOM | sudo tee /etc/consul.d/nginx_config_file.json
+{
+ "service": {
+  "id": "nginx",
+  "name": "nginx",
+  "port": 80,
+  "token": "@@@NGINX_TOKEN@@@",
+  "checks": [
+    {
+      "Name": "NGINX Listening",
+      "TCP": "@@@NGINX-IP@@@:80",
+      "Interval": "10s"
+    }],
+    "connect": {
+    "proxy": {
+      "config": {
+        "bind_address" : "@@@NGINX-IP@@@"
+      }
+    }
+  }
+ }
+}
+EOM
+"""
+
 
 Agent_Policy_File = """
 cat << EOM | sudo tee agent_policy_file.hcl
@@ -148,6 +189,23 @@ service "vault" {
     policy = "write"
 }
 agent_prefix "" {
+    policy = "write"
+}
+session_prefix "" {
+    policy = "write"
+}
+EOM
+"""
+
+Nginx_Policy_File = """
+cat << EOM | sudo tee nginx_policy_file.hcl
+agent "" {
+    policy = "read"
+}
+node_prefix "nginx" {
+    policy = "write"
+}
+service_prefix "nginx" {
     policy = "write"
 }
 session_prefix "" {
@@ -214,6 +272,7 @@ for datacenter in config:
     nodes = datacenter['nodes']
     totalConsulServers = 0
     totalVaultServers = 0
+    totalNginxServers = 0
     retry_join_string = ""
     for n in nodes:
         if n['Server'] == "consul":
@@ -221,6 +280,8 @@ for datacenter in config:
             retry_join_string += '"' + n['ip_address'] + '"' + ", "
         elif n['Server'] == "vault":
             totalVaultServers += 1
+        elif n['Server'] == "nginx":
+            totalNginxServers += 1
 
     if totalConsulServers < 3:
         print("Invalid number of consul nodes, minimum 3, recommened 5")
@@ -321,8 +382,6 @@ for datacenter in config:
         # print(config_hcl)
         n['config_hcl_command'] = config_hcl
         RequiresReboot = False
-        node.SendFile(consulBinary, "consul")
-        print("Succesfully Coppied Consul Binary to node:%s " % n['hostname'])
         node.ExecCommand("sudo apt install -y unzip curl jq dnsutils uuid", True)
         # node.ExecCommand("sudo rm -rf /opt/consul", True)
         result = node.ExecCommand("hostname")
@@ -333,6 +392,9 @@ for datacenter in config:
                              n['hostname'], True)
             RequiresReboot = True
         node.ExecCommand("sudo rm -rf ~/* ", True)
+        node.SendFile(consulBinary, "consul")
+        # node.ExecCommand("sudo mv consul /usr/local/bin", True)
+        print("Succesfully Coppied Consul Binary to node:%s " % n['hostname'])
         node.ExecCommand("sudo systemctl stop consul", True)
         node.ExecCommand("sudo rm -rf /opt/consul", True)
         node.ExecCommand("sudo rm -rf /etc/consul.d", True)
@@ -342,7 +404,7 @@ for datacenter in config:
         node.ExecCommand(
             "sudo useradd --system --home /etc/consul.d --shell /bin/false consul", True)
         node.ExecCommand("sudo chown --recursive consul:consul /opt/consul", True)
-        node.ExecCommand("sudo chmod a+x consul")
+        node.ExecCommand("sudo chmod a+x consul", True)
         node.ExecCommand("sudo mv consul /usr/local/bin", True)
         node.ExecCommand("sudo chmod a+w /etc/consul.d", True)
         node.ExecCommand(
@@ -405,13 +467,16 @@ for datacenter in config:
     agent_policy_command = str(Agent_Policy_File)
     anonymous_policy_command = str(Anonymous_Policy_File)
     vault_policy_command = str(Vault_Policy_File)
+    nginx_policy_command = str(Nginx_Policy_File)
     mtoken = None
     atoken = None
     vtoken = None
+    ntoken = None
     anonymous_id = "00000000-0000-0000-0000-000000000002"
     master_token = None
     agent_token = None
     vault_token = None
+    nginx_token = None
     # regexp = r'SecretID : ([^\n]+)'
     regexp = r'out\': \[\'([^\\n\'\]]+)'
 
@@ -465,6 +530,15 @@ for datacenter in config:
                     % master_token)))
                 vault_token = vtoken[0].strip()
 
+                node.ExecCommand(nginx_policy_command, True)
+                node.ExecCommand(
+                    "consul acl policy create -name 'nginx_policy' -rules @nginx_policy_file.hcl -token %s"
+                    % master_token)
+                ntoken = re.findall(regexp, str(node.ExecCommand(
+                    "consul acl token create -policy-name 'nginx_policy' -token %s |awk 'FNR == 2 {print $2}'"
+                    % master_token)))
+                nginx_token = ntoken[0].strip()
+
         print(" Agent Token:", agent_token, "\n", "Master Token:", master_token)
         break
     if agent_token is not None:
@@ -486,6 +560,7 @@ for datacenter in config:
                 print("Cannot find vault binary")
 
             node.SendFile(vaultBinary, "vault")
+            # node.ExecCommand("sudo mv vault /usr/local/bin/", True)
             print("Succesfully Coppied vault Binary to node:%s " % n['hostname'])
 
             # node.ExecCommand(
@@ -499,7 +574,7 @@ for datacenter in config:
                 "@@@VAULT_SERVER_IP@@@", "%s" % n['ip_address'])
             n['config_vault_command'] = config_vault
             node.ExecCommand("sudo systemctl stop vault", True)
-            # node.ExecCommand("sudo rm -rf /opt/vault", True)
+            node.ExecCommand("sudo rm -rf /opt/vault", True)
             node.ExecCommand("sudo mkdir --parents /opt/vault", True)
             node.ExecCommand(
                 "sudo useradd --system --home /etc/vault.d --shell /bin/false vault", True)
@@ -576,6 +651,23 @@ for datacenter in config:
                     node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" consul")
                     node.ExecCommand("vault write consul/config/access address=127.0.0.1:8500 token=%s" % master_token)
                     break
+    for n in nodes:
+        node = n['node_client']
+        if n['Server'] == 'nginx':
+            print("Installing and Configuring NGINX on node: %s .." % n['hostname'])
+            node.ExecCommand("sudo apt update", True)
+            node.ExecCommand("sudo apt install -y nginx", True)
+            index_file = str(Create_Nginx_Index_File)
+            index_file = index_file.replace("@@@NGINX-HOST@@@", n['hostname'])
+            node.ExecCommand(index_file, True)
+            node.ExecCommand("sudo systemctl enable nginx.service", True)
+            node.ExecCommand("sudo systemctl restart nginx.service", True)
+            nginx_service = str(Create_Nginx_Service_Command)
+            nginx_service = nginx_service.replace(
+                "@@@NGINX_TOKEN@@@", "%s" % nginx_token)
+            nginx_service = nginx_service.replace("@@@NGINX-IP@@@", n['ip_address'])
+            node.ExecCommand(nginx_service, True)
+
     num1 = 0
     num2 = 0
     tls_created = None
@@ -600,12 +692,13 @@ for datacenter in config:
                         node.GetFile(tls_cert, tlsCerts + tls_cert)
                         node.GetFile(tls_key, tlsCerts + tls_key)
 
-                for num in range(totalVaultServers):
+                for num in range(totalVaultServers + totalNginxServers):
                     node.ExecCommand("consul tls cert create -client")
                     tls_cert = primary_dc_name + "-client-consul-" + str(num) + ".pem"
                     tls_key = primary_dc_name + "-client-consul-" + str(num) + "-key.pem"
                     node.GetFile(tls_cert, tlsCerts + tls_cert)
                     node.GetFile(tls_key, tlsCerts + tls_key)
+
                 print("Succesfully Created TLS Certs on node:%s " % n['hostname'])
                 tls_created = True
 
@@ -625,7 +718,8 @@ for datacenter in config:
                 node.SendFile(tlsCerts + tls_key, tls_key)
                 n['copied'] = True
                 num1 += 1
-        if n['Server'] == 'vault':
+        # if n['Server'] == 'vault':
+        else:
             tls_cert = primary_dc_name + "-client-consul-" + str(num2) + ".pem"
             tls_key = primary_dc_name + "-client-consul-" + str(num2) + "-key.pem"
             tls_config_command = tls_config_command.replace("@@@TLS-CERT@@@", "%s" % tls_cert)
@@ -639,6 +733,8 @@ for datacenter in config:
         print("Succesfully Coppied TLS Certs to node:%s " % n['hostname'])
         node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
         node.ExecCommand("sudo systemctl restart consul.service", True)
+
+
 
 if UpDateConfigFileWhenFinished:
     print("updating original nodes.config.json with updated configurations")

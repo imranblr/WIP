@@ -2,14 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3c88b280-7be0-4c11-9e6a-ae2b1e3d0777" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/ConsulVault.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ConsulVault.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/InitNewInfra.py" beforeDir="false" afterPath="$PROJECT_DIR$/InitNewInfra.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Master.token" beforeDir="false" afterPath="$PROJECT_DIR$/Master.token" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vagrantfile" beforeDir="false" afterPath="$PROJECT_DIR$/Vagrantfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vault.Secrets" beforeDir="false" afterPath="$PROJECT_DIR$/Vault.Secrets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nodes.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/nodes.config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0-key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1-key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1-key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-2-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-2-key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-2.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-2.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ubuntu-bionic-18.04-cloudimg-console.log" beforeDir="false" afterPath="$PROJECT_DIR$/ubuntu-bionic-18.04-cloudimg-console.log" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,10 +27,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="600">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
+            <state relative-caret-position="1515">
               <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
@@ -32,10 +39,10 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/classes/node.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1125">
+            <state relative-caret-position="875">
               <caret line="77" column="43" selection-start-line="77" selection-start-column="22" selection-end-line="77" selection-end-column="43" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
@@ -45,10 +52,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/nodes.config.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="320">
+              <caret line="84" column="49" selection-start-line="84" selection-start-column="49" selection-end-line="84" selection-end-column="49" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="167" column="23" selection-start-line="167" selection-start-column="23" selection-end-line="167" selection-end-column="23" />
+            <state relative-caret-position="330">
+              <caret line="55" column="12" selection-start-line="55" selection-start-column="12" selection-end-line="55" selection-end-column="12" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
               </folding>
@@ -65,6 +81,7 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/Test.py" />
+        <option value="$PROJECT_DIR$/nodes.config.json" />
         <option value="$PROJECT_DIR$/InitNewInfra.py" />
       </list>
     </option>
@@ -115,7 +132,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.Test">
+  <component name="RunManager" selected="Python.InitNewInfra">
     <configuration name="InitNewInfra" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ConsulVault" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -160,8 +177,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.Test" />
         <item itemvalue="Python.InitNewInfra" />
+        <item itemvalue="Python.Test" />
       </list>
     </recent_temporary>
   </component>
@@ -187,7 +204,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3291536" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3291536" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -202,32 +219,39 @@
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/classes/node.py">
+    <entry file="file://$PROJECT_DIR$/Test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1125">
-          <caret line="77" column="43" selection-start-line="77" selection-start-column="22" selection-end-line="77" selection-end-column="43" />
+        <state relative-caret-position="1515">
+          <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
           <folding>
-            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#19#48#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nodes.config.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="320">
+          <caret line="84" column="49" selection-start-line="84" selection-start-column="49" selection-end-line="84" selection-end-column="49" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="167" column="23" selection-start-line="167" selection-start-column="23" selection-end-line="167" selection-end-column="23" />
+        <state relative-caret-position="330">
+          <caret line="55" column="12" selection-start-line="55" selection-start-column="12" selection-end-line="55" selection-end-column="12" />
           <folding>
             <element signature="e#19#48#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Test.py">
+    <entry file="file://$PROJECT_DIR$/classes/node.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
+        <state relative-caret-position="875">
+          <caret line="77" column="43" selection-start-line="77" selection-start-column="22" selection-end-line="77" selection-end-column="43" />
           <folding>
-            <element signature="e#19#48#0" expanded="true" />
+            <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>

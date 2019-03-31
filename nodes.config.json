@@ -64,6 +64,30 @@
         "Server": "vault",
         "UI": null,
         "ssh_password": null
+      },
+      {
+        "ssh_username": "vagrant",
+        "hostname": "nginx01",
+        "ssh_port": "22",
+        "ethernet_interface_name": "enp0s8",
+        "ssh_keyfile": ".vagrant/machines/nginx01/virtualbox/private_key",
+        "ip_address": "172.20.20.19",
+        "LogLevel": "INFO",
+        "Server": "nginx",
+        "UI": null,
+        "ssh_password": null
+      },
+      {
+        "ssh_username": "vagrant",
+        "hostname": "nginx02",
+        "ssh_port": "22",
+        "ethernet_interface_name": "enp0s8",
+        "ssh_keyfile": ".vagrant/machines/nginx02/virtualbox/private_key",
+        "ip_address": "172.20.20.20",
+        "LogLevel": "INFO",
+        "Server": "nginx",
+        "UI": null,
+        "ssh_password": null
       }
     ],
     "gosip_encryption_key": "c5x86t3e68ibksMc306Rxg==",
