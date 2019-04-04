@@ -10,6 +10,22 @@ consulBinary = os.getcwd() + "/binaries/consul"
 vaultBinary = os.getcwd() + "/binaries/vault"
 tlsCerts = os.getcwd() + "/tlsCerts/"
 
+Connect_Config_File = """
+cat << EOM | sudo tee /etc/consul.d/connect_config_file.hcl
+
+connect {
+    enabled = true
+    ca_provider = "vault"
+    ca_config {
+        address = "http://vault.service.consul:8200"
+        token = "@@@VAULT-TOKEN@@@"
+        root_pki_path = "pki"
+        intermediate_pki_path = "pki_int/"
+    }
+  }
+EOM
+"""
+
 Create_Consul_Service_Command = """
 cat << EOM | sudo tee /etc/systemd/system/consul.service
 [Unit]
@@ -45,9 +61,7 @@ server = @@@IS_SERVER@@@
 @@@PERFORMANCE@@@
 @@@RETRY_JOIN@@@
 @@@RECURSORS@@@
-connect = {
-  enabled = true
-}
+
 @@@PRIMARY_DATACENTER_NAME@@@
 acl = {
   #@@@ACL_ENABLE@@@
@@ -302,7 +316,7 @@ for datacenter in config:
         elif n['ssh_keyfile']:
             newNode = node(n['ip_address'], n['ssh_port'],
                            n['ssh_username'], keyfile=os.getcwd() + "/" + n['ssh_keyfile'])
-        print("Testing Connection Node: %s" % n['hostname'])
+        print("Testing Connection to Node: %s --> " % n['hostname'], end='')
         if newNode:
             if newNode.Connect():
                 n['node_client'] = newNode
@@ -614,7 +628,7 @@ for datacenter in config:
 
     regexp1 = r'Unseal Key [\d]+: ([^\n]+)'
     regexp2 = r'Initial Root Token: ([^\n]+)'
-    i = 0
+    # i = 0
     keys = []
     with open('Vault.Secrets', 'r') as the_file:
         for line in the_file:
@@ -622,9 +636,9 @@ for datacenter in config:
                 keys.append(re.findall(regexp1, line))
                 # m = keys[i]
                 # print(m[0].strip())
-                i += 1
+                # i += 1
             if "Root Token" in line:
-                rtoken=re.findall(regexp2, line)
+                rtoken = re.findall(regexp2, line)
                 # print(rtoken[0])
     for n in nodes:
         node = n['node_client']
@@ -637,7 +651,6 @@ for datacenter in config:
             node.ExecCommand(
                 "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[3][0], True)
 
-
     status_str = None
     for n in nodes:
         node = n['node_client']
@@ -649,8 +662,9 @@ for datacenter in config:
                 if re.search("active", status_str):
                     node.ExecCommand("vault login %s" % rtoken[0])
                     node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" consul")
-                    node.ExecCommand("vault write consul/config/access address=127.0.0.1:8500 token=%s" % master_token)
+                    node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" consul/config/access address=127.0.0.1:8500 token=%s" % master_token)
                     break
+
     for n in nodes:
         node = n['node_client']
         if n['Server'] == 'nginx':
@@ -667,6 +681,19 @@ for datacenter in config:
                 "@@@NGINX_TOKEN@@@", "%s" % nginx_token)
             nginx_service = nginx_service.replace("@@@NGINX-IP@@@", n['ip_address'])
             node.ExecCommand(nginx_service, True)
+
+
+    print("Setting up Vault as PKI Engine!!")
+
+
+
+    for n in nodes:
+        node = n['node_client']
+        connect_config = str(Connect_Config_File)
+        connect_config = connect_config.replace("@@@VAULT-TOKEN@@@", "%s" % master_token)
+        node.ExecCommand("sudo %s" % connect_config, True)
+        print("Restarting consul on Node: %s  -> " % n['hostname'])
+        node.ExecCommand("sudo systemctl restart consul.service", True)
 
     num1 = 0
     num2 = 0

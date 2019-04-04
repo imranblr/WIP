@@ -60,4 +60,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     nginx02.vm.network "forwarded_port", guest: 80, host: 8082
     nginx02.vm.network "private_network", ip: "172.20.20.20"
   end
+
+  config.vm.define "ssh01" do |ssh01|
+    ssh01.vm.hostname = "ssh01"
+    ssh01.vm.network "private_network", ip: "172.20.20.22"
+  end
 end

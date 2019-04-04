@@ -2,17 +2,36 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3c88b280-7be0-4c11-9e6a-ae2b1e3d0777" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/TestSSH.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TestVaultPKI.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/nodes.config_all.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/o" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vault01.status" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vault02.status" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/*.pem" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/InitNewInfra.py" beforeDir="false" afterPath="$PROJECT_DIR$/InitNewInfra.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Master.token" beforeDir="false" afterPath="$PROJECT_DIR$/Master.token" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vagrantfile" beforeDir="false" afterPath="$PROJECT_DIR$/Vagrantfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vault.Secrets" beforeDir="false" afterPath="$PROJECT_DIR$/Vault.Secrets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nodes.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/nodes.config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/node.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/node.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/consul-agent-ca-key.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/consul-agent-ca.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dc1-client-consul-2-key.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dc1-client-consul-2.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dc1-client-consul-3-key.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dc1-client-consul-3.pem" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" beforeDir="false" afterPath="$PROJECT_DIR$/vault.crt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0-key.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1-key.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-1.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-2-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-2-key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-2.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-2.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-3-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-3-key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-3.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-3.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1-key.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-1.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-2-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-server-consul-2-key.pem" afterDir="false" />
@@ -30,8 +49,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1515">
-              <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
+            <state relative-caret-position="237">
+              <caret line="57" column="16" selection-start-line="57" selection-start-column="16" selection-end-line="57" selection-end-column="16" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
               </folding>
@@ -40,22 +59,25 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/classes/node.py">
+        <entry file="file://$PROJECT_DIR$/TestVaultPKI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="875">
-              <caret line="77" column="43" selection-start-line="77" selection-start-column="22" selection-end-line="77" selection-end-column="43" />
+            <state relative-caret-position="215">
+              <caret line="142" column="31" selection-start-line="142" selection-start-column="31" selection-end-line="142" selection-end-column="31" />
               <folding>
-                <element signature="e#0#13#0" expanded="true" />
+                <element signature="e#19#48#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/nodes.config.json">
+        <entry file="file://$PROJECT_DIR$/TestSSH.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="320">
-              <caret line="84" column="49" selection-start-line="84" selection-start-column="49" selection-end-line="84" selection-end-column="49" />
+            <state relative-caret-position="215">
+              <caret line="93" column="41" selection-start-line="93" selection-start-column="41" selection-end-line="93" selection-end-column="41" />
+              <folding>
+                <element signature="e#19#48#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -63,8 +85,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="55" column="12" selection-start-line="55" selection-start-column="12" selection-end-line="55" selection-end-column="12" />
+            <state relative-caret-position="-9926">
+              <caret line="27" selection-start-line="27" selection-end-line="27" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
               </folding>
@@ -80,9 +102,12 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/Test.py" />
         <option value="$PROJECT_DIR$/nodes.config.json" />
+        <option value="$PROJECT_DIR$/classes/node.py" />
+        <option value="$PROJECT_DIR$/TestSSH.py" />
         <option value="$PROJECT_DIR$/InitNewInfra.py" />
+        <option value="$PROJECT_DIR$/Test.py" />
+        <option value="$PROJECT_DIR$/TestVaultPKI.py" />
       </list>
     </option>
   </component>
@@ -107,8 +132,7 @@
             </path>
             <path>
               <item name="ConsulVault" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ConsulVault" type="462c0819:PsiDirectoryNode" />
-              <item name="classes" type="462c0819:PsiDirectoryNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
             </path>
           </expand>
           <select />
@@ -119,6 +143,11 @@
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -132,7 +161,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.InitNewInfra">
+  <component name="RunManager" selected="Python.TestVaultPKI">
     <configuration name="InitNewInfra" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ConsulVault" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -175,10 +204,54 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="TestSSH" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="ConsulVault" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TestSSH.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestVaultPKI" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="ConsulVault" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TestVaultPKI.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.TestVaultPKI" />
         <item itemvalue="Python.InitNewInfra" />
         <item itemvalue="Python.Test" />
+        <item itemvalue="Python.TestSSH" />
       </list>
     </recent_temporary>
   </component>
@@ -204,54 +277,79 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.3291536" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3291536" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39916405" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info anchor="bottom" id="Python Console" order="10" weight="0.3291536" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Test.py">
+    <entry file="file://$PROJECT_DIR$/nodes.config_all.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1515">
-          <caret line="106" column="5" selection-start-line="106" selection-start-column="5" selection-end-line="106" selection-end-column="5" />
+        <state relative-caret-position="-1080" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/classes/node.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="440">
+          <caret line="42" column="31" selection-start-line="42" selection-start-column="31" selection-end-line="42" selection-end-column="31" />
           <folding>
-            <element signature="e#19#48#0" expanded="true" />
+            <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/nodes.config.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="320">
-          <caret line="84" column="49" selection-start-line="84" selection-start-column="49" selection-end-line="84" selection-end-column="49" />
+        <state relative-caret-position="440">
+          <caret line="92" column="3" selection-start-line="92" selection-start-column="3" selection-end-line="92" selection-end-column="3" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
+    <entry file="file://$PROJECT_DIR$/TestSSH.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="55" column="12" selection-start-line="55" selection-start-column="12" selection-end-line="55" selection-end-column="12" />
+        <state relative-caret-position="215">
+          <caret line="93" column="41" selection-start-line="93" selection-start-column="41" selection-end-line="93" selection-end-column="41" />
           <folding>
             <element signature="e#19#48#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/classes/node.py">
+    <entry file="file://$PROJECT_DIR$/Test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="875">
-          <caret line="77" column="43" selection-start-line="77" selection-start-column="22" selection-end-line="77" selection-end-column="43" />
+        <state relative-caret-position="237">
+          <caret line="57" column="16" selection-start-line="57" selection-start-column="16" selection-end-line="57" selection-end-column="16" />
           <folding>
-            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#19#48#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-9926">
+          <caret line="27" selection-start-line="27" selection-end-line="27" />
+          <folding>
+            <element signature="e#19#48#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/TestVaultPKI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="142" column="31" selection-start-line="142" selection-start-column="31" selection-end-line="142" selection-end-column="31" />
+          <folding>
+            <element signature="e#19#48#0" expanded="true" />
           </folding>
         </state>
       </provider>

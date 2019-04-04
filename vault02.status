@@ -1,0 +1,13 @@
+Key             Value
+---             -----
+Seal Type       shamir
+Initialized     true
+Sealed          false
+Total Shares    5
+Threshold       3
+Version         1.1.0
+Cluster Name    vault-cluster-04745810
+Cluster ID      dcec9641-4f15-98dd-fd50-975b5908740a
+HA Enabled      true
+HA Cluster      https://172.20.20.17:8201
+HA Mode         active

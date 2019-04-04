@@ -9,7 +9,7 @@ import re
 # consulBinary = "/home/imran/VagrantProjects/Infra/automation/binaries/consul"
 # vaultBinary = "/home/imran/VagrantProjects/Infra/automation/binaries/vault"
 #
-tlsCerts = os.getcwd() + "/tlsCerts/"
+# tlsCerts = os.getcwd() + "/tlsCerts/"
 # config = None
 # try:
 #  with open("mnodes.config.json") as f:
@@ -20,17 +20,45 @@ tlsCerts = os.getcwd() + "/tlsCerts/"
 # for datacenter in copy_config:
 #     print (datacenter['consul_nodes'][4]['ip_address'],"\n",datacenter['domain'])
 
+# TLS_Config_File = """
+# cat << EOM | sudo tee /etc/consul.d/tls_config_file.json
+# {
+# "verify_incoming": true,
+# "verify_outgoing": true,
+# "verify_server_hostname": true,
+# "ca_file": "/etc/consul.d/consul-agent-ca.pem",
+# "cert_file": "/etc/consul.d/@@@TLS-CERT@@@",
+# "key_file": "/etc/consul.d/@@@TLS-KEY@@@",
+# "ports": { "http": 8500, "https": 8501 }
+# }
+# EOM
+# """
+#
+#
 TLS_Config_File = """
 cat << EOM | sudo tee /etc/consul.d/tls_config_file.json
 { 
 "verify_incoming": true, 
 "verify_outgoing": true, 
 "verify_server_hostname": true, 
-"ca_file": "/etc/consul.d/consul-agent-ca.pem", 
-"cert_file": "/etc/consul.d/@@@TLS-CERT@@@", 
-"key_file": "/etc/consul.d/@@@TLS-KEY@@@", 
+ "ca_file" : "http://vault.service.consul:8200/v1/pki/ca/pem",
 "ports": { "http": 8500, "https": 8501 } 
 }
+EOM
+"""
+Connect_Config_File = """
+cat << EOM | sudo tee /etc/consul.d/connect_config_file.hcl
+
+connect {
+    enabled = true
+    ca_provider = "vault"
+    ca_config {
+        address = "http://vault.service.consul:8200"
+        token = "0bee1bea-d335-21bd-f45b-aba815a341e6"
+        root_pki_path = "pki"
+        intermediate_pki_path = "pki_int/"
+    }
+  }
 EOM
 """
 
@@ -46,7 +74,9 @@ except:
 
 for datacenter in config:
     nodes = datacenter['nodes']
+    # compnodes = datacenter['comp_nodes']
     for n in nodes:
+    # for n in nodes:
         newNode = None
         if n['ssh_password']:
             newNode = node(n['ip_address'], n['ssh_port'],
@@ -54,18 +84,108 @@ for datacenter in config:
         elif n['ssh_keyfile']:
             newNode = node(n['ip_address'], n['ssh_port'],
                            n['ssh_username'], keyfile=os.getcwd() + "/" + n['ssh_keyfile'])
-        print("Testing Connection Node: %s" % n['hostname'])
+        print("Testing Connection to Node: %s  -> " % n['hostname'], end='')
         if newNode:
             if newNode.Connect():
                 n['node_client'] = newNode
+            if n['Server'] == "ssh":
+                ssh_server_ip = n['ip_address']
 
     for n in nodes:
         node = n['node_client']
-        'node type: node'
-        if not os.path.exists(tlsCerts):
-            print(tlsCerts)
-            print("Cannot find tls directory")
-        # print(n['hostname'])
+        node.ExecCommand("sudo rm -rf /etc/consul.d/connect_config_file.hcl", True)
+        # node.ExecCommand("sudo rm -rf /etc/consul.d/tls_config_file.json", True)
+        # node.ExecCommand("sudo %s" % str(TLS_Config_File), True)
+        # if n['Server'] == 'consul':
+        node.ExecCommand("sudo %s" % str(Connect_Config_File), True)
+        # if n['Server'] != 'nginx':
+
+
+        # node.ExecCommand("sudo sed -i '/^\"key.*/ s/cert.crt/key.pem/' /etc/consul.d/tls_config_file.json", True)
+        # node.ExecCommand("sudo sed -i 's/.crt/.pem/g' /etc/consul.d/tls_config_file.json", True)
+        print("Restarting consul on Node: %s  -> " % n['hostname'])
+        node.ExecCommand("sudo systemctl restart consul.service", True)
+
+#     # regexp1 = r'Unseal Key [\d]+: ([^\n]+)'
+#     regexp2 = r'Initial Root Token: ([^\n]+)'
+#     # i = 0
+#     # keys = []
+#     with open('Vault.Secrets', 'r') as the_file:
+#         for line in the_file:
+#             # if "Unseal" in line:
+#             #     keys.append(re.findall(regexp1, line))
+#             #     # m = keys[i]
+#             #     # print(m[0].strip())
+#             #     i += 1
+#             if "Root Token" in line:
+#                 rtoken = re.findall(regexp2, line)
+#
+#     for n in nodes:
+#         node = n['node_client']
+#         'node type: node'
+#         if n['Server'] == "vault":
+#             file_name = n['hostname'] + ".status"
+#             print("Enabling SSH Secret Engine on Vault ")
+#             node.ExecCommand("vault status -address=\"http://127.0.0.1:8200\" | sudo tee %s" % file_name)
+#             node.GetFile(file_name, os.getcwd() + "/%s" % file_name)
+#             with open(file_name, 'r') as the_file:
+#                 status_str = the_file.read()
+#                 if re.search("active", status_str):
+#                     active_vault_ip = n['ip_address']
+#                     node.ExecCommand("vault login %s" % rtoken[0])
+#                     node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" ssh")
+#                     print("Creating an OTP Key Role...")
+#                     node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" ssh/roles/otp_key_role key_type=otp default_user=ubuntu cidr_list=0.0.0.0/0 address=127.0.0.1:8500")
+#                     ssh_keys = node.ExecCommand(
+#                         "vault write -address=\"http://127.0.0.1:8200\" ssh/creds/otp_key_role ip=%s | awk 'FNR == 7 {print $0}'" % ssh_server_ip)
+#                     print(''.join(ssh_keys['out']))
+#                     break
+#
+#     for n in compnodes:
+#         # print(n)
+#         node = n['node_client']
+#
+#         node.ExecCommand("sudo apt update")
+#         node.ExecCommand("sudo apt install -y unzip")
+#         print("Installed unzip on node: %s" % n['hostname'])
+#         node.ExecCommand(
+#             "sudo wget https://releases.hashicorp.com/vault-ssh-helper/0.1.4/vault-ssh-helper_0.1.4_linux_amd64.zip",
+#             True)
+#         print("Unzipping Helper File...")
+#         node.ExecCommand("sudo unzip -qf vault-ssh-helper_0.1.4_linux_amd64.zip -d /usr/local/bin")
+#         print("Unzipped done!")
+#         node.ExecCommand(" sudo chmod 0755 /usr/local/bin/vault-ssh-helper")
+#         node.ExecCommand("sudo chown root:root /usr/local/bin/vault-ssh-helper")
+#         print("Copied vault-ssh-helper")
+#         node.ExecCommand("sudo mkdir /etc/vault-ssh-helper.d")
+#         node.SendFile(os.getcwd() + "/tlsCerts/consul-agent-ca.pem", "vault.crt")
+#         print("Succesfully Coppied CA Cert to node:%s " % n['hostname'])
+#         node.ExecCommand("sudo mv vault.crt /etc/vault-ssh-helper.d/", True)
+#         vault_ssh_config = str(Vault_Helper_SSH_Config_File)
+#         vault_ssh_config = vault_ssh_config.replace("@@@VAULT-IP@@@", active_vault_ip)
+#         node.ExecCommand("sudo %s" % vault_ssh_config, True)
+#         print("Created Vault Helper SSH config file...")
+#         node.ExecCommand("sudo sed -i '/common-auth/s/^/#/g' /etc/pam.d/sshd")
+#         node.ExecCommand(
+#             "sudo sed -i '/common-auth/a auth optional pam_unix.so not_set_pass use_first_pass nodelay' /etc/pam.d/sshd")
+#         node.ExecCommand(
+#             "sudo sed -i '/common-auth/a auth requisite pam_exec.so quiet expose_authtok log=/tmp/vaultssh.log /usr/local/bin/vault-ssh-helper -dev -config=/etc/vault-ssh-helper.d/config.hcl' /etc/pam.d/sshd")
+#         node.ExecCommand(
+#             "sudo sed -i 's/^#\?ChallengeResponse.*/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config")
+#         node.ExecCommand(
+#             "sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/g' /etc/ssh/sshd_config")
+#         node.ExecCommand(
+#             "sudo sed -i 's/^#\?UsePAM.*/UsePAM yes/g' /etc/ssh/sshd_config")
+#         print("Restarting SSH service...")
+#         node.ExecCommand("sudo systemctl restart sshd")
+
+
+        # node = n['node_client']
+        # 'node type: node'
+        # if not os.path.exists(tlsCerts):
+        #     print(tlsCerts)
+        #     print("Cannot find tls directory")
+        # # print(n['hostname'])
         # print(tlsCerts)
         # node.GetFile("consul-agent-ca-key.pem", tlsCerts + "consul-agent-ca-key.pem")
         # break
@@ -147,23 +267,23 @@ for datacenter in config:
     #     node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
     #     node.ExecCommand("sudo systemctl restart consul.service", True)
 
-    for n in nodes:
-
-        node = n['node_client']
-        # node.ExecCommand("sudo rm -rf /etc/consul.d/dc1*.pem", True)
-        #
-        # if n['Server'] == 'consul':
-        #     node.SendFile(tlsCerts + "dc1-server-consul-1.pem", "dc1-server-consul-1.pem")
-        #     node.SendFile(tlsCerts + "dc1-server-consul-1-key.pem", "dc1-server-consul-1-key.pem")
-        #
-        # el
-        #     node.SendFile(tlsCerts + "dc1-client-consul-1.pem", "dc1-client-consul-1.pem")
-        #     node.SendFile(tlsCerts + "dc1-client-consul-1-key.pem", "dc1-client-consul-1-key.pem")
-        #
-        # node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
-        node.ExecCommand("sudo sed -i 's/ -1/8500/g' /etc/consul.d/tls_config_file.json", True)
-        node.ExecCommand("sudo systemctl restart consul", True)
-        print(n['hostname'], " : restarted")
+    # for n in nodes:
+    #
+    #     node = n['node_client']
+    #     # node.ExecCommand("sudo rm -rf /etc/consul.d/dc1*.pem", True)
+    #     #
+    #     # if n['Server'] == 'consul':
+    #     #     node.SendFile(tlsCerts + "dc1-server-consul-1.pem", "dc1-server-consul-1.pem")
+    #     #     node.SendFile(tlsCerts + "dc1-server-consul-1-key.pem", "dc1-server-consul-1-key.pem")
+    #     #
+    #     # el
+    #     #     node.SendFile(tlsCerts + "dc1-client-consul-1.pem", "dc1-client-consul-1.pem")
+    #     #     node.SendFile(tlsCerts + "dc1-client-consul-1-key.pem", "dc1-client-consul-1-key.pem")
+    #     #
+    #     # node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
+    #     node.ExecCommand("sudo sed -i 's/ -1/8500/g' /etc/consul.d/tls_config_file.json", True)
+    #     node.ExecCommand("sudo systemctl restart consul", True)
+    #     print(n['hostname'], " : restarted")
 
     #     print("Testing Connection Node: %s" % n['hostname'])
     #     if newNode:
@@ -184,3 +304,7 @@ for datacenter in config:
 # total = 3
 # for num in range(total):
 #     print(num)
+
+# test_str = "This is test"
+# print('-->', end='', flush=True)
+# print(test_str)

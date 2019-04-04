@@ -29,10 +29,10 @@ class node:
                     self.__sshclient = client
                     self.__connectedUsingPassword = False
                     self.__isconnected = True
-                    print("Connected Successfully to node: %s" % self.hostname)
+                    print("Success")
                     return True
                 else:
-                    print("KeyFile Does Not exists %s" % self.keyfile)
+                    print("Failed, KeyFile Does Not exists %s" % self.keyfile)
                 return False
             elif self.password is not None:
                 client.connect(self.hostname, port=self.port,
@@ -40,7 +40,7 @@ class node:
                 self.__sshclient = client
                 self.__connectedUsingPassword = True
                 self.__isconnected = True
-                print("Connected Successfully to node: %s" % self.hostname)
+                print("Success")
                 return True
             return False
 
