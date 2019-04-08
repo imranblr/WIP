@@ -91,6 +91,7 @@
       }
     ],
     "gosip_encryption_key": "c5x86t3e68ibksMc306Rxg==",
-    "datacenter_name": "dc1"
+    "datacenter_name": "dc1",
+    "pki_engine": "vault"
   }
 ]

@@ -1,13 +1,14 @@
-Key             Value
----             -----
-Seal Type       shamir
-Initialized     true
-Sealed          false
-Total Shares    5
-Threshold       3
-Version         1.1.0
-Cluster Name    vault-cluster-04745810
-Cluster ID      dcec9641-4f15-98dd-fd50-975b5908740a
-HA Enabled      true
-HA Cluster      https://172.20.20.17:8201
-HA Mode         active
+Key                    Value
+---                    -----
+Seal Type              shamir
+Initialized            true
+Sealed                 false
+Total Shares           5
+Threshold              3
+Version                1.1.0
+Cluster Name           vault-cluster-bd3b1212
+Cluster ID             674e5131-982b-5bd7-5d02-db550b85942a
+HA Enabled             true
+HA Cluster             https://172.20.20.16:8201
+HA Mode                standby
+Active Node Address    http://172.20.20.16:8200

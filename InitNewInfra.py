@@ -9,10 +9,10 @@ import re
 consulBinary = os.getcwd() + "/binaries/consul"
 vaultBinary = os.getcwd() + "/binaries/vault"
 tlsCerts = os.getcwd() + "/tlsCerts/"
+pkiCerts = os.getcwd() + "/pkiCerts/"
 
 Connect_Config_File = """
 cat << EOM | sudo tee /etc/consul.d/connect_config_file.hcl
-
 connect {
     enabled = true
     ca_provider = "vault"
@@ -20,9 +20,17 @@ connect {
         address = "http://vault.service.consul:8200"
         token = "@@@VAULT-TOKEN@@@"
         root_pki_path = "pki"
-        intermediate_pki_path = "pki_int/"
+        intermediate_pki_path = "pki_int"
     }
   }
+EOM
+"""
+
+Connect_Consul_Config_File = """
+cat << EOM | sudo tee /etc/consul.d/connect_config_file.hcl
+connect {
+enabled = true
+}
 EOM
 """
 
@@ -61,7 +69,6 @@ server = @@@IS_SERVER@@@
 @@@PERFORMANCE@@@
 @@@RETRY_JOIN@@@
 @@@RECURSORS@@@
-
 @@@PRIMARY_DATACENTER_NAME@@@
 acl = {
   #@@@ACL_ENABLE@@@
@@ -70,12 +77,10 @@ acl = {
   tokens = {
       agent = "@@@AGENT_TOKEN@@@"
   }
-
 }
 addresses = {
    http = "0.0.0.0"
 }
-
 @@@LOG_LEVEL@@@
 enable_syslog = true
 bind_addr = "{{ GetInterfaceIP \\"@@@INTERFACE@@@\\" }}"
@@ -227,6 +232,21 @@ session_prefix "" {
 }
 EOM
 """
+
+PKI_Policy_File = """
+cat << EOM | sudo tee pki_policy_file.hcl
+path "sys/mounts/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+path "sys/mounts" {
+  capabilities = [ "read", "list" ]
+}
+path "pki*" {
+  capabilities = [ "create", "read", "update", "delete", "list", "sudo" ]
+}
+EOM
+"""
+
 
 TLS_Config_File = """
 cat << EOM | sudo tee /etc/consul.d/tls_config_file.json
@@ -572,13 +592,8 @@ for datacenter in config:
         if n['Server'] == 'vault':
             if not os.path.exists(vaultBinary):
                 print("Cannot find vault binary")
-
             node.SendFile(vaultBinary, "vault")
-            # node.ExecCommand("sudo mv vault /usr/local/bin/", True)
             print("Succesfully Coppied vault Binary to node:%s " % n['hostname'])
-
-            # node.ExecCommand(
-            #     "sudo setcap 'cap_ipc_lock=+ep' /usr/local/bin/vault", True)
             config_vault = str(Create_Vault_Config_File)
             config_vault = config_vault.replace(
                 "@@@TLS@@@", "true")
@@ -628,18 +643,14 @@ for datacenter in config:
 
     regexp1 = r'Unseal Key [\d]+: ([^\n]+)'
     regexp2 = r'Initial Root Token: ([^\n]+)'
-    # i = 0
     keys = []
     with open('Vault.Secrets', 'r') as the_file:
         for line in the_file:
             if "Unseal" in line:
                 keys.append(re.findall(regexp1, line))
-                # m = keys[i]
-                # print(m[0].strip())
-                # i += 1
             if "Root Token" in line:
                 rtoken = re.findall(regexp2, line)
-                # print(rtoken[0])
+
     for n in nodes:
         node = n['node_client']
         if n['Server'] == 'vault':
@@ -651,20 +662,82 @@ for datacenter in config:
             node.ExecCommand(
                 "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[3][0], True)
 
-    status_str = None
+    regexp3 = r'out\': \[\'([^\\]+)'
     for n in nodes:
         node = n['node_client']
-        if n['Server'] == 'vault':
-            print("Enabling Consul Engine on Vault for ACL Management")
-            node.ExecCommand("vault status -address=\"http://127.0.0.1:8200\" | tee Vault.Status")
-            with open("Vault.Status", 'r') as the_file:
+        if n['Server'] == "vault":
+            print("Checking Vault Status on %s -> " % n['hostname'], end='')
+            file_name = n['hostname'] + ".status"
+            time.sleep(2)
+            node.ExecCommand("vault status -address=\"http://127.0.0.1:8200\" | sudo tee %s" % file_name)
+            node.GetFile(file_name, os.getcwd() + "/%s" % file_name)
+            with open(file_name, 'r') as the_file:
                 status_str = the_file.read()
                 if re.search("active", status_str):
-                    node.ExecCommand("vault login %s" % rtoken[0])
-                    node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" consul")
-                    node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" consul/config/access address=127.0.0.1:8500 token=%s" % master_token)
-                    break
+                    print("Active \n")
+                    node.ExecCommand("vault login -address=\"http://127.0.0.1:8200\" %s" % rtoken[0])
 
+                    # print("Enabling Consul Engine on Vault for ACL Management")
+                    # node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" consul")
+                    # node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" "
+                    #                  "consul/config/access address=127.0.0.1:8500 token=%s" % master_token)
+                    # time.sleep(2)
+
+                    print("Creating PKI Secret Engine policy and token...")
+                    node.ExecCommand("sudo %s" % str(PKI_Policy_File), True)
+                    node.ExecCommand("vault policy write -address=\"http://127.0.0.1:8200\" "
+                                     "pki_policy pki_policy_file.hcl", True)
+                    pki_token = re.findall(regexp3, str(node.ExecCommand("vault token create "
+                                                                         "-address=\"http://127.0.0.1:8200\" "
+                                                                         "-policy=pki_policy |awk 'FNR == 3 {print $2}'")))
+                    print("PKI Token -> ", pki_token[0])
+                    time.sleep(2)
+
+                    print("Enabling PKI Secret Engine on %s...\n" % n['hostname'])
+                    node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" pki")
+                    node.ExecCommand("vault secrets tune -address=\"http://127.0.0.1:8200\" "
+                                     "-max-lease-ttl=219000h pki")
+                    print("Generating root certificate...\n")
+                    time.sleep(2)
+                    node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" "
+                                     "-field=certificate pki/root/generate/internal common_name=\"consul\" "
+                                     "ttl=219000h > Root_CA_cert.crt")
+                    node.ExecCommand(
+                        "vault write -address=\"http://127.0.0.1:8200\" pki/config/urls "
+                        "issuing_certificates=\"http://127.0.0.1:8200/v1/pki/ca\" "
+                        "crl_distribution_points=\"http://127.0.0.1:8200/v1/pki/crl\"")
+                    time.sleep(1)
+                    print("Enabling Intermediate PKI Secret Engine on %s...\n" % n['hostname'])
+                    node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" -path=pki_int pki")
+                    node.ExecCommand(
+                        "vault secrets tune -address=\"http://127.0.0.1:8200\" -max-lease-ttl=175200h pki_int")
+
+                    print("Generating Intermediate root certificate...\n")
+                    node.ExecCommand(
+                        "vault write -address=\"http://127.0.0.1:8200\" -format=json "
+                        "pki_int/intermediate/generate/internal common_name=\"Consul Intermediate Authority\" "
+                        "ttl=\"175200h\" | jq -r '.data.csr' > pki_intermediate.csr")
+                    node.ExecCommand(
+                        "vault write -address=\"http://127.0.0.1:8200\" -format=json "
+                        "pki/root/sign-intermediate csr=@pki_intermediate.csr format=pem_bundle "
+                        "ttl=\"175200h\" | jq -r '.data.certificate' > intermediate.cert.pem")
+                    node.ExecCommand(
+                        "vault write -address=\"http://127.0.0.1:8200\" "
+                        "pki_int/intermediate/set-signed certificate=@intermediate.cert.pem")
+                    time.sleep(2)
+
+                    print("Creating a roles called \"consul-role\" and \"leaf-cert\"...\n")
+                    node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" "
+                                     "pki_int/roles/consul-role allowed_domains=\"consul\" "
+                                     "allow_subdomains=true max_ttl=\"8760h\"")
+                    node.ExecCommand("vault write  -address=\"http://127.0.0.1:8200\" "
+                                     "pki_int/roles/leaf-cert allow_subdomain=true allowed_domains=consul "
+                                     "key_type=ec key_bits=224 require_cn=false use_csr_sans=false ttl=1h max_ttl=1h")
+
+                    time.sleep(2)
+                    break
+                else:
+                    print("Standby \n")
     for n in nodes:
         node = n['node_client']
         if n['Server'] == 'nginx':
@@ -677,28 +750,60 @@ for datacenter in config:
             node.ExecCommand("sudo systemctl enable nginx.service", True)
             node.ExecCommand("sudo systemctl restart nginx.service", True)
             nginx_service = str(Create_Nginx_Service_Command)
-            nginx_service = nginx_service.replace(
-                "@@@NGINX_TOKEN@@@", "%s" % nginx_token)
+            nginx_service = nginx_service.replace("@@@NGINX_TOKEN@@@", "%s" % nginx_token)
             nginx_service = nginx_service.replace("@@@NGINX-IP@@@", n['ip_address'])
             node.ExecCommand(nginx_service, True)
 
-
-    print("Setting up Vault as PKI Engine!!")
-
-
-
     for n in nodes:
         node = n['node_client']
-        connect_config = str(Connect_Config_File)
-        connect_config = connect_config.replace("@@@VAULT-TOKEN@@@", "%s" % master_token)
+        connect_config = str(Connect_Consul_Config_File)
+        if datacenter['pki_engine'] == 'vault':
+            if n['Server'] == 'consul':
+                print("Setting up Vault as PKI Engine for %s" % n['hostname'])
+                connect_config = str(Connect_Config_File)
+                connect_config = connect_config.replace("@@@VAULT-TOKEN@@@", "%s" % pki_token[0])
+        else:
+            print("Configuring Consul Built-in TLS...")
         node.ExecCommand("sudo %s" % connect_config, True)
         print("Restarting consul on Node: %s  -> " % n['hostname'])
         node.ExecCommand("sudo systemctl restart consul.service", True)
 
+    # for n in nodes:
+    #     node = n['node_client']
+    #     'node type: node'
+    #     pki_engine_enabled = None
+    #     if n['Server'] == "vault":
+    #         if pki_engine_enabled is not True:
+    #             print("Checking Vault Status on %s -> " % n['hostname'], end='')
+    #             file_name = n['hostname'] + ".status"
+    #             time.sleep(2)
+    #             node.ExecCommand("vault status -address=\"http://127.0.0.1:8200\" | sudo tee %s" % file_name)
+    #             node.GetFile(file_name, os.getcwd() + "/%s" % file_name)
+    #             with open(file_name, 'r') as the_file:
+    #                 status_str = the_file.read()
+    #                 if re.search("active", status_str):
+    #                     print("Active \n")
+    #                     print("Enabling PKI Secret Engine on %s...\n" % n['hostname'])
+    #                     active_vault_ip = n['ip_address']
+    #                     node.ExecCommand("vault login -address=\"http://127.0.0.1:8200\" %s" % rtoken[0])
+    #                     # node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" pki")
+    #                     node.ExecCommand("vault secrets tune -address=\"http://127.0.0.1:8200\" "
+    #                                      "-max-lease-ttl=219000h pki")
+    #
+    #                     print("Enabling Intermediate PKI Secret Engine on %s...\n" % n['hostname'])
+    #                     node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" -path=pki_int pki")
+    #                     node.ExecCommand(
+    #                         "vault secrets tune -address=\"http://127.0.0.1:8200\" -max-lease-ttl=175200h pki_int")
+    #                     break
+    #                 else:
+    #                     print("Standby \n")
+    #
+    # print("Stopped for Troubleshooting!!")
+
+
     num1 = 0
     num2 = 0
     tls_created = None
-    print("Configuring Consul Built-in TLS...")
     for n in nodes:
         node = n['node_client']
         tls_config_command = str(TLS_Config_File)
@@ -745,7 +850,6 @@ for datacenter in config:
                 node.SendFile(tlsCerts + tls_key, tls_key)
                 n['copied'] = True
                 num1 += 1
-        # if n['Server'] == 'vault':
         else:
             tls_cert = primary_dc_name + "-client-consul-" + str(num2) + ".pem"
             tls_key = primary_dc_name + "-client-consul-" + str(num2) + "-key.pem"

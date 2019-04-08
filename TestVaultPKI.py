@@ -60,7 +60,7 @@ for datacenter in config:
                         print("Enabling PKI Secret Engine on %s...\n" % n['hostname'])
                         active_vault_ip = n['ip_address']
                         node.ExecCommand("vault login -address=\"http://127.0.0.1:8200\" %s" % rtoken[0])
-                        node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" pki")
+                        # node.ExecCommand("vault secrets enable -address=\"http://127.0.0.1:8200\" pki")
                         node.ExecCommand("vault secrets tune -address=\"http://127.0.0.1:8200\" "
                                          "-max-lease-ttl=219000h pki")
                         print("Generating root certificate...\n")

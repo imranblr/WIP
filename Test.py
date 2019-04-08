@@ -35,6 +35,51 @@ import re
 # """
 #
 #
+Consul_Config = """
+cat << EOM | sudo tee /etc/consul.d/consul.hcl
+datacenter = "dc1"
+data_dir = "/opt/consul"
+encrypt = "c5x86t3e68ibksMc306Rxg=="
+ui = true
+server = true
+bootstrap_expect = 3
+performance {  raft_multiplier = 1 }
+
+recursors=["192.168.192.1"]
+primary_datacenter="dc1"
+acl = {
+  enabled = true
+  default_policy = "deny"
+  down_policy = "extend-cache"
+  tokens = {
+      agent = "54e31ea7-3fb3-6d69-2f59-c98f069df747"
+  }
+}
+addresses = {
+   http = "0.0.0.0"
+}
+log_level="INFO"
+enable_syslog = true
+bind_addr = "{{ GetInterfaceIP \\"enp0s8\\" }}"
+ports = { dns = 53 }
+EOM
+"""
+
+
+PKI_Policy_File = """
+cat << EOM | sudo tee pki_policy_file.hcl
+path "sys/mounts/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+path "sys/mounts" {
+  capabilities = [ "read", "list" ]
+}
+path "pki*" {
+  capabilities = [ "create", "read", "update", "delete", "list", "sudo" ]
+}
+EOM
+"""
+
 TLS_Config_File = """
 cat << EOM | sudo tee /etc/consul.d/tls_config_file.json
 { 
@@ -54,7 +99,7 @@ connect {
     ca_provider = "vault"
     ca_config {
         address = "http://vault.service.consul:8200"
-        token = "0bee1bea-d335-21bd-f45b-aba815a341e6"
+        token = "@@@TOKEN@@@"
         root_pki_path = "pki"
         intermediate_pki_path = "pki_int/"
     }
@@ -90,19 +135,67 @@ for datacenter in config:
                 n['node_client'] = newNode
             if n['Server'] == "ssh":
                 ssh_server_ip = n['ip_address']
+    regexp = r'Initial Root Token: ([^\n]+)'
+    with open('Vault.Secrets', 'r') as the_file:
+        for line in the_file:
+            if "Root Token" in line:
+                rtoken = re.findall(regexp, line)
+
+    # regexp1 = r'out\': \[\'([^\\]+)'
+    # for n in nodes:
+    #     node = n['node_client']
+    #     'node type: node'
+    #     pki_engine_enabled = None
+    #     if n['Server'] == "vault":
+    #         if pki_engine_enabled is not True:
+    #             print("Checking Vault Status on %s -> " % n['hostname'], end='')
+    #             file_name = n['hostname'] + ".status"
+    #             time.sleep(2)
+    #             node.ExecCommand("vault status -address=\"http://127.0.0.1:8200\" | sudo tee %s" % file_name)
+    #             node.GetFile(file_name, os.getcwd() + "/%s" % file_name)
+    #             with open(file_name, 'r') as the_file:
+    #                 status_str = the_file.read()
+    #                 if re.search("active", status_str):
+    #                     print("Active \n")
+    #
+    #                     print("Creating PKI Secret Engine policy and token...")
+    #                     node.ExecCommand("vault login -address=\"http://127.0.0.1:8200\" %s" % rtoken[0])
+    #                     node.ExecCommand("sudo %s" % str(PKI_Policy_File), True)
+    #                     node.ExecCommand("vault policy write -address=\"http://127.0.0.1:8200\" pki_policy pki_policy_file.hcl", True)
+    #                     # pki_token = re.findall(regexp1, str(node.ExecCommand("vault token create -address=\"http://127.0.0.1:8200\" -policy=pki_policy |awk 'FNR == 3 {print $2}'")))
+    #                     pki_token_a = node.ExecCommand(
+    #                         "vault token create -address=\"http://127.0.0.1:8200\" -policy=pki_policy |awk 'FNR == 3 {print $2}'")
+    #                     print("pki raw -> ", pki_token_a, "\n\n\n")
+    #                     pki_token = re.findall(regexp1, str(pki_token_a))
+    #                     print("pki list item-> ", pki_token, "\n\n\n")
+    #                     print("pki token -> ", pki_token[0], "\n\n\n")
+    #                     pki_engine_enabled = True
+    #                     break
+    #                 else:
+    #                     print("Standby \n")
 
     for n in nodes:
         node = n['node_client']
-        node.ExecCommand("sudo rm -rf /etc/consul.d/connect_config_file.hcl", True)
-        # node.ExecCommand("sudo rm -rf /etc/consul.d/tls_config_file.json", True)
+        # node.ExecCommand("sudo chown consul: -R /etc/consul.d")
+        #
+        # if n['Server'] == 'consul':
+        #     node.ExecCommand("sudo rm -rf /etc/consul.d/consul.hcl", True)
+        #     node.ExecCommand("sudo %s" % str(Consul_Config), True)
+        node.ExecCommand("sudo sed -i 's/8500/-1/' /etc/consul.d/tls_config_file.json", True)
         # node.ExecCommand("sudo %s" % str(TLS_Config_File), True)
         # if n['Server'] == 'consul':
-        node.ExecCommand("sudo %s" % str(Connect_Config_File), True)
-        # if n['Server'] != 'nginx':
 
-
-        # node.ExecCommand("sudo sed -i '/^\"key.*/ s/cert.crt/key.pem/' /etc/consul.d/tls_config_file.json", True)
-        # node.ExecCommand("sudo sed -i 's/.crt/.pem/g' /etc/consul.d/tls_config_file.json", True)
+        # connect_config = str(Connect_Config_File)
+        # # connect_config = connect_config.replace("@@@TOKEN@@@", rtoken[0])
+        # connect_config = connect_config.replace("@@@TOKEN@@@", "s.j2ToesuHxI9WmeMQVcCoe4qp")
+        # node.ExecCommand("sudo %s" % connect_config, True)
+        # node.ExecCommand("sudo export VAULT_TOKEN=s.j2ToesuHxI9WmeMQVcCoe4qp", True)
+    #
+    #     # if n['Server'] != 'nginx':
+    #
+    #
+    #     # node.ExecCommand("sudo sed -i '/^\"key.*/ s/cert.crt/key.pem/' /etc/consul.d/tls_config_file.json", True)
+    #     # node.ExecCommand("sudo sed -i 's/.crt/.pem/g' /etc/consul.d/tls_config_file.json", True)
         print("Restarting consul on Node: %s  -> " % n['hostname'])
         node.ExecCommand("sudo systemctl restart consul.service", True)
 
