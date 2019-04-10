@@ -121,7 +121,7 @@ for datacenter in config:
     nodes = datacenter['nodes']
     # compnodes = datacenter['comp_nodes']
     for n in nodes:
-    # for n in nodes:
+    # for n in compnodes:
         newNode = None
         if n['ssh_password']:
             newNode = node(n['ip_address'], n['ssh_port'],
@@ -135,12 +135,55 @@ for datacenter in config:
                 n['node_client'] = newNode
             if n['Server'] == "ssh":
                 ssh_server_ip = n['ip_address']
-    regexp = r'Initial Root Token: ([^\n]+)'
+    # regexp = r'Initial Root Token: ([^\n]+)'
+    # with open('Vault.Secrets', 'r') as the_file:
+    #     for line in the_file:
+    #         if "Root Token" in line:
+    #             rtoken = re.findall(regexp, line)
+
+    regexp1 = r'Unseal Key [\d]+: ([^\n]+)'
+    regexp2 = r'Initial Root Token: ([^\n]+)'
+    keys = []
     with open('Vault.Secrets', 'r') as the_file:
         for line in the_file:
+            if "Unseal" in line:
+                keys.append(re.findall(regexp1, line))
             if "Root Token" in line:
-                rtoken = re.findall(regexp, line)
+                rtoken = re.findall(regexp2, line)
 
+    for n in nodes:
+        node = n['node_client']
+        if n['Server'] == 'consul':
+
+            node.ExecCommand("sudo sed -i 's/http:/https:/' /etc/consul.d/connect_config_file.hcl")
+            # node.ExecCommand("sudo sed -i 's/8200/8201/' /etc/consul.d/connect_config_file.hcl")
+            # node.ExecCommand("sudo systemctl restart consul", True)
+        # print("Installing JQ on Node -> %s" % n['hostname'])
+        # node.ExecCommand("sudo sed -i '/vivid/d' /etc/apt/sources.list", True)
+        # node.ExecCommand("sudo sed -i -e \"\$a deb http://old-releases.ubuntu.com/ubuntu vivid main universe\" "
+        #                  "/etc/apt/sources.list", True)
+        # node.ExecCommand("sudo apt update", True)
+        # node.ExecCommand("sudo apt install -y jq", True)
+
+        if n['Server'] == 'vault':
+
+            node.ExecCommand("sudo systemctl restart vault", True)
+
+            print("Unsealing Vault node: %s..." % n['hostname'])
+            time.sleep(5)
+            node.ExecCommand(
+                "vault operator unseal -ca-cert=/etc/consul.d/consul-agent-ca.pem %s" % keys[1][0], True)
+            node.ExecCommand(
+                "vault operator unseal -ca-cert=/etc/consul.d/consul-agent-ca.pem %s" % keys[2][0], True)
+            node.ExecCommand(
+                "vault operator unseal -ca-cert=/etc/consul.d/consul-agent-ca.pem %s" % keys[3][0], True)
+        node.ExecCommand("sudo systemctl restart consul", True)
+
+    # for n in nodes:
+    #     node = n['node_client']
+    #     print("Restarting Consul")
+    #     time.sleep(2)
+    #     node.ExecCommand("sudo systemctl restart consul", True)
     # regexp1 = r'out\': \[\'([^\\]+)'
     # for n in nodes:
     #     node = n['node_client']
@@ -174,30 +217,30 @@ for datacenter in config:
     #                 else:
     #                     print("Standby \n")
 
-    for n in nodes:
-        node = n['node_client']
-        # node.ExecCommand("sudo chown consul: -R /etc/consul.d")
-        #
-        # if n['Server'] == 'consul':
-        #     node.ExecCommand("sudo rm -rf /etc/consul.d/consul.hcl", True)
-        #     node.ExecCommand("sudo %s" % str(Consul_Config), True)
-        node.ExecCommand("sudo sed -i 's/8500/-1/' /etc/consul.d/tls_config_file.json", True)
-        # node.ExecCommand("sudo %s" % str(TLS_Config_File), True)
-        # if n['Server'] == 'consul':
-
-        # connect_config = str(Connect_Config_File)
-        # # connect_config = connect_config.replace("@@@TOKEN@@@", rtoken[0])
-        # connect_config = connect_config.replace("@@@TOKEN@@@", "s.j2ToesuHxI9WmeMQVcCoe4qp")
-        # node.ExecCommand("sudo %s" % connect_config, True)
-        # node.ExecCommand("sudo export VAULT_TOKEN=s.j2ToesuHxI9WmeMQVcCoe4qp", True)
+    # for n in nodes:
+    #     node = n['node_client']
+    #     # node.ExecCommand("sudo chown consul: -R /etc/consul.d")
+    #     #
+    #     # if n['Server'] == 'consul':
+    #     #     node.ExecCommand("sudo rm -rf /etc/consul.d/consul.hcl", True)
+    #     #     node.ExecCommand("sudo %s" % str(Consul_Config), True)
+    #     node.ExecCommand("sudo sed -i 's/8500/-1/' /etc/consul.d/tls_config_file.json", True)
+    #     # node.ExecCommand("sudo %s" % str(TLS_Config_File), True)
+    #     # if n['Server'] == 'consul':
     #
-    #     # if n['Server'] != 'nginx':
-    #
-    #
-    #     # node.ExecCommand("sudo sed -i '/^\"key.*/ s/cert.crt/key.pem/' /etc/consul.d/tls_config_file.json", True)
-    #     # node.ExecCommand("sudo sed -i 's/.crt/.pem/g' /etc/consul.d/tls_config_file.json", True)
-        print("Restarting consul on Node: %s  -> " % n['hostname'])
-        node.ExecCommand("sudo systemctl restart consul.service", True)
+    #     # connect_config = str(Connect_Config_File)
+    #     # # connect_config = connect_config.replace("@@@TOKEN@@@", rtoken[0])
+    #     # connect_config = connect_config.replace("@@@TOKEN@@@", "s.j2ToesuHxI9WmeMQVcCoe4qp")
+    #     # node.ExecCommand("sudo %s" % connect_config, True)
+    #     # node.ExecCommand("sudo export VAULT_TOKEN=s.j2ToesuHxI9WmeMQVcCoe4qp", True)
+    # #
+    # #     # if n['Server'] != 'nginx':
+    # #
+    # #
+    # #     # node.ExecCommand("sudo sed -i '/^\"key.*/ s/cert.crt/key.pem/' /etc/consul.d/tls_config_file.json", True)
+    # #     # node.ExecCommand("sudo sed -i 's/.crt/.pem/g' /etc/consul.d/tls_config_file.json", True)
+    #     print("Restarting consul on Node: %s  -> " % n['hostname'])
+    #     node.ExecCommand("sudo systemctl restart consul.service", True)
 
 #     # regexp1 = r'Unseal Key [\d]+: ([^\n]+)'
 #     regexp2 = r'Initial Root Token: ([^\n]+)'

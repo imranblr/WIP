@@ -1,6 +1,13 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+$installer = <<INSTALLER
+sudo sudo sed -i '/vivid/d' /etc/apt/sources.list
+sudo echo "deb http://old-releases.ubuntu.com/ubuntu vivid main universe" >> /etc/apt/sources.list
+sudo apt-get update
+sudo apt-get install -y jq
+INSTALLER
+
 # Specify a custom Vagrant box for the demo
 DEMO_BOX_NAME = "ubuntu/bionic64"
 
@@ -16,8 +23,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   config.vm.define "consul01" do |consul01|
     consul01.vm.hostname = "consul01"
-    # Forward Consul web and api port 8500
-    consul01.vm.network "forwarded_port", guest: 8500, host: 8511
+    # Forward Consul web and api port 8501
+    consul01.vm.network "forwarded_port", guest: 8501, host: 8511
       # consul01.ssh.username = "root"
       # consul01.ssh.password = "P@ssw0rd"
       # consul01.ssh.keys_only = false
@@ -27,13 +34,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "consul02" do |consul02|
     consul02.vm.hostname = "consul02"
-    consul02.vm.network "forwarded_port", guest: 8500, host: 8512
+    consul02.vm.network "forwarded_port", guest: 8501, host: 8512
     consul02.vm.network "private_network", ip: "172.20.20.12"
   end
   
   config.vm.define "consul03" do |consul03|
     consul03.vm.hostname = "consul03"
-    consul03.vm.network "forwarded_port", guest: 8500, host: 8513
+    consul03.vm.network "forwarded_port", guest: 8501, host: 8513
     consul03.vm.network "private_network", ip: "172.20.20.13"
   end
 
@@ -41,12 +48,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vault01.vm.hostname = "vault01"
     vault01.vm.network "forwarded_port", guest: 8200, host: 8211
     vault01.vm.network "private_network", ip: "172.20.20.16"
+    vault01.vm.provision "shell", inline: $installer
   end
 
   config.vm.define "vault02" do |vault02|
     vault02.vm.hostname = "vault02"
     vault02.vm.network "forwarded_port", guest: 8200, host: 8212
     vault02.vm.network "private_network", ip: "172.20.20.17"
+    vault02.vm.provision "shell", inline: $installer
   end
 
   config.vm.define "nginx01" do |nginx01|

@@ -7,7 +7,7 @@ import re
 
 config = None
 try:
- with open("nodes.config_all.json") as f:
+ with open("nodes.config.json") as f:
     config = json.loads(f.read())
 
 except:
@@ -27,19 +27,21 @@ for datacenter in config:
     nodes = datacenter['nodes']
     compnodes = datacenter['comp_nodes']
     for n in (nodes + compnodes):
-        newNode = None
-        if n['ssh_password']:
-            newNode = node(n['ip_address'], n['ssh_port'],
-                           n['ssh_username'], password=n['ssh_password'])
-        elif n['ssh_keyfile']:
-            newNode = node(n['ip_address'], n['ssh_port'],
-                           n['ssh_username'], keyfile=os.getcwd() + "/" + n['ssh_keyfile'])
-        print("Testing Connection to Node: %s -> " % n['hostname'], end='')
-        if newNode:
-            if newNode.Connect():
-                n['node_client'] = newNode
-            if n['Server'] == "ssh":
-                ssh_server_ip = n['ip_address']
+        if n['Server'] == 'vault' or n['Server'] == 'ssh':
+
+            newNode = None
+            if n['ssh_password']:
+                newNode = node(n['ip_address'], n['ssh_port'],
+                               n['ssh_username'], password=n['ssh_password'])
+            elif n['ssh_keyfile']:
+                newNode = node(n['ip_address'], n['ssh_port'],
+                               n['ssh_username'], keyfile=os.getcwd() + "/" + n['ssh_keyfile'])
+            print("Testing Connection to Node: %s -> " % n['hostname'], end='')
+            if newNode:
+                if newNode.Connect():
+                    n['node_client'] = newNode
+                if n['Server'] == "ssh":
+                    ssh_server_ip = n['ip_address']
 
     regexp = r'Initial Root Token: ([^\n]+)'
     with open('Vault.Secrets', 'r') as the_file:
@@ -49,10 +51,10 @@ for datacenter in config:
     print("\n => Established connection to all the nodes!!! <=\n")
     time.sleep(2)
     for n in nodes:
-        node = n['node_client']
-        'node type: node'
         ssh_engine_enable = None
         if n['Server'] == "vault":
+            node = n['node_client']
+            'node type: node'
             if ssh_engine_enable is not True:
                 print("Checking Vault Status on %s -> " % n['hostname'], end='')
                 file_name = n['hostname'] + ".status"
@@ -81,15 +83,16 @@ for datacenter in config:
                         break
                     else:
                         print("Standby \n")
-
+    helper_ver = "0.1.4"
     for n in compnodes:
         node = n['node_client']
         node.ExecCommand("sudo apt update")
         node.ExecCommand("sudo apt install -y unzip")
-        node.ExecCommand(
-            "sudo wget https://releases.hashicorp.com/vault-ssh-helper/0.1.4/vault-ssh-helper_0.1.4_linux_amd64.zip",
-            True)
-        node.ExecCommand("sudo unzip -qf vault-ssh-helper_0.1.4_linux_amd64.zip -d /usr/local/bin")
+        node.ExecCommand("sudo rm -rf *vault*")
+        node.ExecCommand("sudo rm -rf /usr/local/bin/*vault*")
+        node.ExecCommand("sudo wget https://releases.hashicorp.com/vault-ssh-helper/%s/vault-ssh-helper_%s_linux_amd64.zip" % (
+                helper_ver, helper_ver), True)
+        node.ExecCommand("sudo unzip -q vault-ssh-helper_%s_linux_amd64.zip -d /usr/local/bin" % helper_ver)
         node.ExecCommand(" sudo chmod 0755 /usr/local/bin/vault-ssh-helper")
         node.ExecCommand("sudo chown root:root /usr/local/bin/vault-ssh-helper")
         node.ExecCommand("sudo mkdir /etc/vault-ssh-helper.d")

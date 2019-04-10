@@ -1,97 +1,111 @@
 [
   {
+    "gosip_encryption_key": "oOThx+l6TOXX65V9qvvy9A==",
+    "nodes": [
+      {
+        "ssh_keyfile": ".vagrant/machines/consul01/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.11",
+        "hostname": "consul01",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "consul",
+        "UI": true,
+        "ethernet_interface_name": "enp0s8"
+      },
+      {
+        "ssh_keyfile": ".vagrant/machines/consul02/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.12",
+        "hostname": "consul02",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "consul",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      },
+      {
+        "ssh_keyfile": ".vagrant/machines/consul03/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.13",
+        "hostname": "consul03",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "consul",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      },
+      {
+        "ssh_keyfile": ".vagrant/machines/vault01/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.16",
+        "hostname": "vault01",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "vault",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      },
+      {
+        "ssh_keyfile": ".vagrant/machines/vault02/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.17",
+        "hostname": "vault02",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "vault",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      },
+      {
+        "ssh_keyfile": ".vagrant/machines/nginx01/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.19",
+        "hostname": "nginx01",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "nginx",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      },
+      {
+        "ssh_keyfile": ".vagrant/machines/nginx02/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.20",
+        "hostname": "nginx02",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "nginx",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      }
+    ],
+    "datacenter_name": "dc1",
+    "comp_nodes": [
+      {
+        "ssh_keyfile": ".vagrant/machines/ssh01/virtualbox/private_key",
+        "LogLevel": "INFO",
+        "ip_address": "172.20.20.22",
+        "hostname": "ssh01",
+        "ssh_username": "vagrant",
+        "ssh_password": null,
+        "ssh_port": "22",
+        "Server": "ssh",
+        "UI": null,
+        "ethernet_interface_name": "enp0s8"
+      }
+    ],
+    "pki_engine": "vault",
     "datacenter_default_dns_resolvers": [
       "192.168.192.1"
     ],
-    "domain": "consul",
-    "nodes": [
-      {
-        "ssh_username": "vagrant",
-        "hostname": "consul01",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/consul01/virtualbox/private_key",
-        "ip_address": "172.20.20.11",
-        "LogLevel": "INFO",
-        "Server": "consul",
-        "UI": true,
-        "ssh_password": null
-      },
-      {
-        "ssh_username": "vagrant",
-        "hostname": "consul02",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/consul02/virtualbox/private_key",
-        "ip_address": "172.20.20.12",
-        "LogLevel": "INFO",
-        "Server": "consul",
-        "UI": true,
-        "ssh_password": null
-      },
-      {
-        "ssh_username": "vagrant",
-        "hostname": "consul03",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/consul03/virtualbox/private_key",
-        "ip_address": "172.20.20.13",
-        "LogLevel": "INFO",
-        "Server": "consul",
-        "UI": true,
-        "ssh_password": null
-      },
-      {
-        "ssh_username": "vagrant",
-        "hostname": "vault01",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/vault01/virtualbox/private_key",
-        "ip_address": "172.20.20.16",
-        "LogLevel": "INFO",
-        "Server": "vault",
-        "UI": null,
-        "ssh_password": null
-      },
-      {
-        "ssh_username": "vagrant",
-        "hostname": "vault02",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/vault02/virtualbox/private_key",
-        "ip_address": "172.20.20.17",
-        "LogLevel": "INFO",
-        "Server": "vault",
-        "UI": null,
-        "ssh_password": null
-      },
-      {
-        "ssh_username": "vagrant",
-        "hostname": "nginx01",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/nginx01/virtualbox/private_key",
-        "ip_address": "172.20.20.19",
-        "LogLevel": "INFO",
-        "Server": "nginx",
-        "UI": null,
-        "ssh_password": null
-      },
-      {
-        "ssh_username": "vagrant",
-        "hostname": "nginx02",
-        "ssh_port": "22",
-        "ethernet_interface_name": "enp0s8",
-        "ssh_keyfile": ".vagrant/machines/nginx02/virtualbox/private_key",
-        "ip_address": "172.20.20.20",
-        "LogLevel": "INFO",
-        "Server": "nginx",
-        "UI": null,
-        "ssh_password": null
-      }
-    ],
-    "gosip_encryption_key": "c5x86t3e68ibksMc306Rxg==",
-    "datacenter_name": "dc1",
-    "pki_engine": "vault"
+    "domain": "consul"
   }
 ]

@@ -251,13 +251,13 @@ EOM
 TLS_Config_File = """
 cat << EOM | sudo tee /etc/consul.d/tls_config_file.json
 { 
-"verify_incoming": true, 
+"verify_incoming": true,
 "verify_outgoing": true, 
 "verify_server_hostname": true, 
 "ca_file": "/etc/consul.d/consul-agent-ca.pem", 
 "cert_file": "/etc/consul.d/@@@TLS-CERT@@@", 
 "key_file": "/etc/consul.d/@@@TLS-KEY@@@", 
-"ports": { "http": 8500, "https": 8501 } 
+"ports": { "http": -1, "https": 8501 } 
 }
 EOM
 """
@@ -416,7 +416,7 @@ for datacenter in config:
         # print(config_hcl)
         n['config_hcl_command'] = config_hcl
         RequiresReboot = False
-        node.ExecCommand("sudo apt install -y unzip curl jq dnsutils uuid", True)
+        node.ExecCommand("sudo apt install -y unzip curl dnsutils uuid", True)
         # node.ExecCommand("sudo rm -rf /opt/consul", True)
         result = node.ExecCommand("hostname")
         if result['out'][0].strip() != n['hostname']:
@@ -594,6 +594,11 @@ for datacenter in config:
                 print("Cannot find vault binary")
             node.SendFile(vaultBinary, "vault")
             print("Succesfully Coppied vault Binary to node:%s " % n['hostname'])
+            # node.ExecCommand("sudo sed -i '/vivid/d' /etc/apt/sources.list", True)
+            # node.ExecCommand("sudo sed -i -e \"\$a deb http://old-releases.ubuntu.com/ubuntu vivid main universe\" "
+            #                  "/etc/apt/sources.list", True)
+            # node.ExecCommand("sudo apt update", True)
+            # node.ExecCommand("sudo apt install -y jq", True)
             config_vault = str(Create_Vault_Config_File)
             config_vault = config_vault.replace(
                 "@@@TLS@@@", "true")
@@ -654,7 +659,7 @@ for datacenter in config:
     for n in nodes:
         node = n['node_client']
         if n['Server'] == 'vault':
-            print("Unsealing Vault on node: %s..." % n['hostname'])
+            print("Unsealing Vault node: %s..." % n['hostname'])
             node.ExecCommand(
                 "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[1][0], True)
             node.ExecCommand(
@@ -726,7 +731,7 @@ for datacenter in config:
                         "pki_int/intermediate/set-signed certificate=@intermediate.cert.pem")
                     time.sleep(2)
 
-                    print("Creating a roles called \"consul-role\" and \"leaf-cert\"...\n")
+                    print("Creating roles named \"consul-role\" and \"leaf-cert\"...\n")
                     node.ExecCommand("vault write -address=\"http://127.0.0.1:8200\" "
                                      "pki_int/roles/consul-role allowed_domains=\"consul\" "
                                      "allow_subdomains=true max_ttl=\"8760h\"")
@@ -840,6 +845,15 @@ for datacenter in config:
             tls_config_command = tls_config_command.replace("@@@TLS-KEY@@@", "%s" % tls_key)
             n['tls_config_command'] = tls_config_command
             node.ExecCommand(n['tls_config_command'], True)
+            node.ExecCommand("sudo sed -i 's/http/https/' /etc/consul.d/consul.hcl")
+            node.ExecCommand("sudo sed -i 's/dns/https \= 8501, dns/' /etc/consul.d/consul.hcl")
+            if n['UI']:
+                node.ExecCommand("sudo sed -i '/ui = true/a client_addr = \"0.0.0.0\"' /etc/consul.d/consul.hcl")
+                node.ExecCommand(
+                    "sudo echo \"enable_script_checks = false\" >> /etc/consul.d/consul.hcl")
+                node.ExecCommand("sudo echo \"disable_remote_exec = true\" >> /etc/consul.d/consul.hcl")
+                node.ExecCommand("sudo sed -i '/verify_incoming/ s/true/false/' /etc/consul.d/tls_config_file.json", True)
+                node.ExecCommand("sudo sed -i '/verify_incoming/a \"verify_incoming_rpc\": true,' /etc/consul.d/tls_config_file.json", True)
             if n['copied'] is True:
                 node.ExecCommand("sudo systemctl restart consul.service", True)
                 num1 += 1
@@ -848,6 +862,8 @@ for datacenter in config:
                 node.SendFile(tlsCerts + "consul-agent-ca.pem", "consul-agent-ca.pem")
                 node.SendFile(tlsCerts + tls_cert, tls_cert)
                 node.SendFile(tlsCerts + tls_key, tls_key)
+                node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
+                node.ExecCommand("sudo systemctl restart consul.service", True)
                 n['copied'] = True
                 num1 += 1
         else:
@@ -857,15 +873,46 @@ for datacenter in config:
             tls_config_command = tls_config_command.replace("@@@TLS-KEY@@@", "%s" % tls_key)
             n['tls_config_command'] = tls_config_command
             node.ExecCommand(n['tls_config_command'], True)
+            node.ExecCommand("sudo sed -i 's/http/https/' /etc/consul.d/consul.hcl")
+            node.ExecCommand("sudo sed -i 's/dns/https \= 8501, dns/' /etc/consul.d/consul.hcl")
             node.SendFile(tlsCerts + "consul-agent-ca.pem", "consul-agent-ca.pem")
             node.SendFile(tlsCerts + tls_cert, tls_cert)
             node.SendFile(tlsCerts + tls_key, tls_key)
+            node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
+            node.ExecCommand("sudo systemctl restart consul.service", True)
+            print("Succesfully Coppied TLS Certs to node:%s " % n['hostname'])
+            if n['Server'] == 'vault':
+                # node.ExecCommand("sudo cat /etc/consul.d/%s > /etc/vault.d/%s_cert.pem" %(tls_cert, n['hostname']), True)
+                # node.ExecCommand("sudo cat /etc/consul.d/consul-agent-ca.pem >> /etc/vault.d/%s_cert.pem" % n['hostname'], True)
+                # node.ExecCommand("sudo cat /etc/consul.d/%s > /etc/vault.d/%s_key.pem" % (tls_key, n['hostname']),
+                #                  True)
+                # node.ExecCommand("sudo sed -i '/tls_disable/a tls_key_file = \"/etc/vault.d/%s_key.pem\"' /etc/vault.d/vault.hcl" % n['hostname'], True)
+                # node.ExecCommand(
+                #     "sudo sed -i '/tls_disable/a tls_cert_file = \"/etc/vault.d/%s_cert.pem\"' /etc/vault.d/vault.hcl" %
+                #     n['hostname'], True)
+                # node.ExecCommand(
+                #     "sudo sed -i '/tls_disable/d' /etc/vault.d/vault.hcl", True)
+                node.ExecCommand("sudo sed -i 's/8500/8501/' /etc/vault.d/vault.hcl", True)
+                node.ExecCommand("sudo sed -i '/storage/a   scheme = \"https\"' /etc/vault.d/vault.hcl", True)
+                node.ExecCommand("sudo sed -i "
+                                 "'/token/a   tls_key_file = \"/etc/consul.d/%s\"' /etc/vault.d/vault.hcl" % tls_key,
+                                 True)
+                node.ExecCommand("sudo sed -i "
+                                 "'/token/a   tls_cert_file = \"/etc/consul.d/%s\"' /etc/vault.d/vault.hcl" % tls_cert,
+                                 True)
+                node.ExecCommand("sudo sed -i "
+                                 "'/token/a   tls_ca_file = \"/etc/consul.d/consul-agent-ca.pem\"' /etc/vault.d/vault.hcl",
+                                 True)
+                node.ExecCommand("sudo systemctl restart vault", True)
+                print("Unsealing Vault node: %s..." % n['hostname'])
+                time.sleep(5)
+                node.ExecCommand(
+                    "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[1][0], True)
+                node.ExecCommand(
+                    "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[2][0], True)
+                node.ExecCommand(
+                    "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[3][0], True)
             num2 += 1
-        print("Succesfully Coppied TLS Certs to node:%s " % n['hostname'])
-        node.ExecCommand("sudo mv *.pem /etc/consul.d/", True)
-        node.ExecCommand("sudo systemctl restart consul.service", True)
-
-
 
 if UpDateConfigFileWhenFinished:
     print("updating original nodes.config.json with updated configurations")
