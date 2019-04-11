@@ -154,18 +154,21 @@ for datacenter in config:
     for n in nodes:
         node = n['node_client']
         # if n['Server'] == 'consul':
-
             # node.ExecCommand("sudo sed -i 's/http:/https:/' /etc/consul.d/connect_config_file.hcl")
             # node.ExecCommand("sudo sed -i 's/8200/8201/' /etc/consul.d/connect_config_file.hcl")
             # node.ExecCommand("sudo systemctl restart consul", True)
-        # print("Installing JQ on Node -> %s" % n['hostname'])
-        # node.ExecCommand("sudo sed -i '/vivid/d' /etc/apt/sources.list", True)
-        # node.ExecCommand("sudo sed -i -e \"\$a deb http://old-releases.ubuntu.com/ubuntu vivid main universe\" "
-        #                  "/etc/apt/sources.list", True)
-        # node.ExecCommand("sudo apt update", True)
-        # node.ExecCommand("sudo apt install -y jq", True)
 
         if n['Server'] == 'vault':
+            # node.ExecCommand("sudo cat /etc/consul.d/%s > /etc/vault.d/%s_cert.pem" %(tls_cert, n['hostname']), True)
+            # node.ExecCommand("sudo cat /etc/consul.d/consul-agent-ca.pem >> /etc/vault.d/%s_cert.pem" % n['hostname'], True)
+            # node.ExecCommand("sudo cat /etc/consul.d/%s > /etc/vault.d/%s_key.pem" % (tls_key, n['hostname']),
+            #                  True)
+            # node.ExecCommand("sudo sed -i '/tls_disable/a tls_key_file = \"/etc/vault.d/%s_key.pem\"' /etc/vault.d/vault.hcl" % n['hostname'], True)
+            # node.ExecCommand(
+            #     "sudo sed -i '/tls_disable/a tls_cert_file = \"/etc/vault.d/%s_cert.pem\"' /etc/vault.d/vault.hcl" %
+            #     n['hostname'], True)
+            # node.ExecCommand(
+            #     "sudo sed -i '/tls_disable/d' /etc/vault.d/vault.hcl", True)
 
             node.ExecCommand("sudo systemctl restart vault", True)
 
