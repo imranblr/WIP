@@ -153,9 +153,9 @@ for datacenter in config:
 
     for n in nodes:
         node = n['node_client']
-        if n['Server'] == 'consul':
+        # if n['Server'] == 'consul':
 
-            node.ExecCommand("sudo sed -i 's/http:/https:/' /etc/consul.d/connect_config_file.hcl")
+            # node.ExecCommand("sudo sed -i 's/http:/https:/' /etc/consul.d/connect_config_file.hcl")
             # node.ExecCommand("sudo sed -i 's/8200/8201/' /etc/consul.d/connect_config_file.hcl")
             # node.ExecCommand("sudo systemctl restart consul", True)
         # print("Installing JQ on Node -> %s" % n['hostname'])
@@ -172,11 +172,11 @@ for datacenter in config:
             print("Unsealing Vault node: %s..." % n['hostname'])
             time.sleep(5)
             node.ExecCommand(
-                "vault operator unseal -ca-cert=/etc/consul.d/consul-agent-ca.pem %s" % keys[1][0], True)
+                "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[1][0], True)
             node.ExecCommand(
-                "vault operator unseal -ca-cert=/etc/consul.d/consul-agent-ca.pem %s" % keys[2][0], True)
+                "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[2][0], True)
             node.ExecCommand(
-                "vault operator unseal -ca-cert=/etc/consul.d/consul-agent-ca.pem %s" % keys[3][0], True)
+                "vault operator unseal -address=\"http://127.0.0.1:8200\" %s" % keys[3][0], True)
         node.ExecCommand("sudo systemctl restart consul", True)
 
     # for n in nodes:

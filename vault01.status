@@ -6,8 +6,8 @@ Sealed          false
 Total Shares    5
 Threshold       3
 Version         1.1.0
-Cluster Name    vault-cluster-73384701
-Cluster ID      6f62a7ba-09d3-be74-0cc2-579793709335
+Cluster Name    vault-cluster-28e22f18
+Cluster ID      26a1dec0-77b8-6fe1-e16f-9e1ca5efdb92
 HA Enabled      true
 HA Cluster      https://172.20.20.16:8201
 HA Mode         active

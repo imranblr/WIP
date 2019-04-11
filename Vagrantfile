@@ -1,12 +1,17 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-$installer = <<INSTALLER
+$install_jq = <<JQ_INSTALLER
 sudo sudo sed -i '/vivid/d' /etc/apt/sources.list
 sudo echo "deb http://old-releases.ubuntu.com/ubuntu vivid main universe" >> /etc/apt/sources.list
 sudo apt-get update
 sudo apt-get install -y jq
-INSTALLER
+JQ_INSTALLER
+
+$install_nginx = <<NGINX_INSTALLER
+sudo apt-get update
+sudo apt-get install -y nginx
+NGINX_INSTALLER
 
 # Specify a custom Vagrant box for the demo
 DEMO_BOX_NAME = "ubuntu/bionic64"
@@ -48,26 +53,28 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vault01.vm.hostname = "vault01"
     vault01.vm.network "forwarded_port", guest: 8200, host: 8211
     vault01.vm.network "private_network", ip: "172.20.20.16"
-    vault01.vm.provision "shell", inline: $installer
+    vault01.vm.provision "shell", inline: $install_jq
   end
 
   config.vm.define "vault02" do |vault02|
     vault02.vm.hostname = "vault02"
     vault02.vm.network "forwarded_port", guest: 8200, host: 8212
     vault02.vm.network "private_network", ip: "172.20.20.17"
-    vault02.vm.provision "shell", inline: $installer
+    vault02.vm.provision "shell", inline: $install_jq
   end
 
   config.vm.define "nginx01" do |nginx01|
     nginx01.vm.hostname = "nginx01"
     nginx01.vm.network "forwarded_port", guest: 80, host: 8081
     nginx01.vm.network "private_network", ip: "172.20.20.19"
+    nginx01.vm.provision "shell", inline: $install_nginx
   end
 
   config.vm.define "nginx02" do |nginx02|
     nginx02.vm.hostname = "nginx02"
     nginx02.vm.network "forwarded_port", guest: 80, host: 8082
     nginx02.vm.network "private_network", ip: "172.20.20.20"
+    nginx02.vm.provision "shell", inline: $install_nginx
   end
 
   config.vm.define "ssh01" do |ssh01|

@@ -6,17 +6,8 @@
       <change beforePath="$PROJECT_DIR$/InitNewInfra.py" beforeDir="false" afterPath="$PROJECT_DIR$/InitNewInfra.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Master.token" beforeDir="false" afterPath="$PROJECT_DIR$/Master.token" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TestSSH.py" beforeDir="false" afterPath="$PROJECT_DIR$/TestSSH.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vagrantfile" beforeDir="false" afterPath="$PROJECT_DIR$/Vagrantfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vault.Secrets" beforeDir="false" afterPath="$PROJECT_DIR$/Vault.Secrets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nodes.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/nodes.config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nodes.config.json.old" beforeDir="false" afterPath="$PROJECT_DIR$/nodes.config.json.old" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkiCerts/CA_cert.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkiCerts/Client_cert.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkiCerts/Client_key.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkiCerts/Server_cert.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkiCerts/Server_key.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkiCerts/intermediate.cert.pem" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/consul-agent-ca.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0-key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0-key.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0.pem" beforeDir="false" afterPath="$PROJECT_DIR$/tlsCerts/dc1-client-consul-0.pem" afterDir="false" />
@@ -44,8 +35,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="215">
-              <caret line="160" column="26" lean-forward="true" selection-start-line="160" selection-start-column="26" selection-end-line="160" selection-end-column="26" />
+            <state relative-caret-position="380">
+              <caret line="165" column="58" lean-forward="true" selection-start-line="165" selection-start-column="58" selection-end-line="165" selection-end-column="58" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
               </folding>
@@ -56,7 +47,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/TestSSH.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
+            <state relative-caret-position="1050">
               <caret line="74" column="53" selection-start-line="74" selection-start-column="53" selection-end-line="74" selection-end-column="53" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
@@ -68,7 +59,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/nodes.config.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
+            <state relative-caret-position="1500">
               <caret line="100" column="19" selection-start-line="100" selection-start-column="19" selection-end-line="100" selection-end-column="19" />
             </state>
           </provider>
@@ -77,7 +68,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/TestVaultPKI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="169">
+            <state relative-caret-position="1575">
               <caret line="109" column="55" selection-start-line="109" selection-start-column="55" selection-end-line="109" selection-end-column="55" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
@@ -89,8 +80,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="154" column="18" lean-forward="true" selection-start-line="154" selection-start-column="18" selection-end-line="154" selection-end-column="18" />
+            <state relative-caret-position="40">
+              <caret line="335" column="66" selection-start-line="335" selection-start-column="66" selection-end-line="335" selection-end-column="66" />
               <folding>
                 <element signature="e#19#48#0" expanded="true" />
               </folding>
@@ -110,8 +101,8 @@
         <option value="$PROJECT_DIR$/TestVaultPKI.py" />
         <option value="$PROJECT_DIR$/nodes.config.json" />
         <option value="$PROJECT_DIR$/TestSSH.py" />
-        <option value="$PROJECT_DIR$/InitNewInfra.py" />
         <option value="$PROJECT_DIR$/Test.py" />
+        <option value="$PROJECT_DIR$/InitNewInfra.py" />
       </list>
     </option>
   </component>
@@ -320,19 +311,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="215">
-          <caret line="160" column="26" lean-forward="true" selection-start-line="160" selection-start-column="26" selection-end-line="160" selection-end-column="26" />
-          <folding>
-            <element signature="e#19#48#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/TestSSH.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
+        <state relative-caret-position="1050">
           <caret line="74" column="53" selection-start-line="74" selection-start-column="53" selection-end-line="74" selection-end-column="53" />
           <folding>
             <element signature="e#19#48#0" expanded="true" />
@@ -342,15 +323,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nodes.config.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
+        <state relative-caret-position="1500">
           <caret line="100" column="19" selection-start-line="100" selection-start-column="19" selection-end-line="100" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/TestVaultPKI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="169">
+        <state relative-caret-position="1575">
           <caret line="109" column="55" selection-start-line="109" selection-start-column="55" selection-end-line="109" selection-end-column="55" />
+          <folding>
+            <element signature="e#19#48#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="380">
+          <caret line="165" column="58" lean-forward="true" selection-start-line="165" selection-start-column="58" selection-end-line="165" selection-end-column="58" />
           <folding>
             <element signature="e#19#48#0" expanded="true" />
           </folding>
@@ -359,8 +350,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/InitNewInfra.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="154" column="18" lean-forward="true" selection-start-line="154" selection-start-column="18" selection-end-line="154" selection-end-column="18" />
+        <state relative-caret-position="40">
+          <caret line="335" column="66" selection-start-line="335" selection-start-column="66" selection-end-line="335" selection-end-column="66" />
           <folding>
             <element signature="e#19#48#0" expanded="true" />
           </folding>
