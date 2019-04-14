@@ -334,7 +334,7 @@ for datacenter in config:
             if newNode.Connect():
                 n['node_client'] = newNode
     print("\nSetting up HashiCorp Consul - A service mesh solution...\n")
-    time.sleep(2)
+    time.sleep(1)
     for n in nodes:
         node = n['node_client']
         'node type: node'
@@ -478,7 +478,6 @@ for datacenter in config:
         node.ExecCommand("sudo service consul restart", True)
     print("Sleeping for another 5 seconds until ACL is ready...\n")
     time.sleep(5)
-    print("Running ACL bootstrap on first server node \"%s\" " % n['hostname'].upper())
 
     agent_policy_command = str(Agent_Policy_File)
     anonymous_policy_command = str(Anonymous_Policy_File)
@@ -492,6 +491,7 @@ for datacenter in config:
     for n in nodes:
         if n['Server'] == "consul":
             node = n['node_client']
+            print("Running ACL bootstrap on first server node \"%s\" " % n['hostname'].upper())
             result = node.ExecCommand("sudo consul acl bootstrap |tee Master.Token", True)
             # print("Saved file Master.Token on node: %s " % n['hostname'], "\n")
             with open('Master.token', 'w') as the_file:
