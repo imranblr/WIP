@@ -1,0 +1,31 @@
+- hosts: logstash 
+  become: yes 
+  tasks:
+    - name: Copy Pipeline to listen on TCP 5044
+      ansible.builtin.copy:
+        src: ./wan1-tcp-5044-pipeline.conf
+        dest: /etc/logstash/conf.d/wan1-tcp-5044-pipeline.conf
+
+    - name: Add the logstash host ip 
+      ansible.builtin.replace:
+        path: /etc/logstash/conf.d/wan1-tcp-5044-pipeline.conf 
+        regexp: 'IP-ADDRESS'
+        replace: '{{ ansible_ssh_host }}'
+
+    - name: Copy Pipeline to listen on UDP 514 
+      ansible.builtin.copy:
+        src: ./wan1-udp-514-pipeline.conf
+        dest: /etc/logstash/conf.d/wan1-udp-514-pipeline.conf
+
+    - name: Add the logstash host ip 
+      ansible.builtin.replace:
+        path: /etc/logstash/conf.d/wan1-udp-514-pipeline.conf
+        regexp: 'IP-ADDRESS'
+        replace: '{{ ansible_ssh_host }}'
+
+    - name: Restart logstash service 
+      ansible.builtin.systemd:
+        state: restarted
+        enabled: yes
+        name: logstash 
+

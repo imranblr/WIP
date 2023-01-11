@@ -1,0 +1,70 @@
+- hosts: all 
+  become: yes
+  tasks:
+    - name: Forwarding IPv4 and letting iptables see bridged traffic 
+      copy:
+        dest: "/etc/modules-load.d/k8s.conf"
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Runnig modprobe overlay
+      command: /usr/sbin/modprobe overlay
+
+    - name: Runnig modprobe br_netfilter 
+      command: /usr/sbin/modprobe br_netfilter
+
+    - name: Making the change persistent 
+      copy:
+        dest: "/etc/sysctl.d/k8s.conf"
+        content: |
+          net.bridge.bridge-nf-call-iptables  = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward                 = 1
+
+    - name: Restarting SYSCTL 
+      command: /usr/sbin/sysctl --system
+
+- hosts: k8m1
+  become: yes
+  tasks:
+    - name: initialize the cluster
+      shell: kubeadm init --control-plane-endpoint "k8api.ssbi.local:6443" --pod-network-cidr=10.244.0.0/16 | tee cluster_initialized.txt
+      args:
+        chdir: /home/ubuntu 
+        creates: cluster_initialized.txt 
+
+    - name: create .kube directory
+      file:
+        path: /home/ubuntu/.kube
+        state: directory
+        mode: 0755
+        owner: ubuntu
+
+    - name: copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/ubuntu/.kube/config
+        remote_src: yes
+        owner: ubuntu
+
+    - name: Wait for port 6443 to become open for API services
+      wait_for:
+        #timeout: 300 #wait for 5 mins
+        #delegate_to: localhost
+        port: 6443
+        delay: 60
+
+    - name: Copy the Flannel deployment file
+      copy: src=./flannel.yml dest=/tmp/
+
+    - name: install Pod network
+      shell: kubectl --kubeconfig /home/ubuntu/.kube/config apply -f  /tmp/flannel.yml | tee pod_network_setup.txt
+      args:
+        chdir: /home/ubuntu
+        creates: pod_network_setup.txt
+
+    # - name: Reboot the Master Node (Wait for 5 min)
+    #  reboot:
+    #    reboot_timeout: 300
+

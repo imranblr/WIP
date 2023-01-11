@@ -1,0 +1,27 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install metricbeat
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - metricbeat
+
+
+    - name: Put EC Hosts entry in metricbeat yaml file
+      ansible.builtin.replace:
+        path: /etc/metricbeat/metricbeat.yml
+        regexp: '^\s\shosts:\s\[\"localhost\:9200\"\]'
+        replace: "  hosts:"
+
+    - name: Set EC Hosts to Data nodes
+      ansible.builtin.lineinfile:
+        path: /etc/metricbeat/metricbeat.yml
+        insertafter: "  hosts:"
+        line: "    - http://{{ hostvars[item]['ansible_host'] }}:9200"
+      with_items:
+        - "{{ groups['data'] }}"
+

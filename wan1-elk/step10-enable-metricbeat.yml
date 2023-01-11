@@ -1,0 +1,27 @@
+- hosts: masters,data
+  become: yes
+  tasks:
+    - name: Enable Elasticsearch XPACK
+      shell: metricbeat modules enable elasticsearch-xpack
+
+- hosts: masters
+  become: yes
+  tasks:
+    - name: Enable Kibana XPACK
+      shell: metricbeat modules enable kibana-xpack
+
+- hosts: logstash
+  become: yes
+  tasks:
+    - name: Enable Logstash XPACK
+      shell: metricbeat modules enable logstash-xpack
+
+- hosts: all
+  become: yes
+  tasks:
+    - name: Restart metricbeat service
+      ansible.builtin.systemd:
+        state: restarted
+        enabled: yes
+        name: metricbeat
+

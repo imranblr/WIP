@@ -1,0 +1,76 @@
+- hosts: web 
+  become: yes 
+  tasks:
+    #    - name: Add Java Repository
+    #      ansible.builtin.apt_repository:
+    #        repo: ppa:webupd8team/java
+
+    #    - name: Install Java
+    #      ansible.builtin.apt:
+    #        name: oracle-java8-installer
+    #       state: present
+    #        update_cache: yes
+
+    - name: Install Keepalived and HAproxy 
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - keepalived 
+          - haproxy 
+          - net-tools
+
+    - name: Copy Keepalived configuration
+      ansible.builtin.copy:
+        src: ./keepalived.conf
+        dest: /etc/keepalived/keepalived.conf
+
+    - name: Update the Keepalived IPADDRESS 
+      ansible.builtin.replace:
+        path: /etc/keepalived/keepalived.conf
+        regexp: 'IPADDRESS'
+        replace: '{{ ansible_ssh_host }}'
+
+    - name: Copy Keepalive Script
+      ansible.builtin.copy:
+        src: ./check_webserver.sh
+        dest: /etc/keepalived/
+        mode: u+x,g+x,o+x
+
+    - name: Update the IPADDRESS in script 
+      ansible.builtin.replace:
+        path: /etc/keepalived/check_webserver.sh
+        regexp: 'IPADDRESS'
+        replace: '{{ ansible_ssh_host }}'
+
+    - name: Update HAproxy configuration
+      ansible.builtin.lineinfile:
+        path: "/etc/haproxy/haproxy.cfg"
+        line: '{{ item }}'
+      with_items:
+        - 'frontend web'
+        - '  bind *:80'
+        - '  default_backend kibana'
+        - 'backend kibana'
+        - '  mode http'
+
+    - name: Add the Backend servers in HAproxy
+      ansible.builtin.lineinfile:
+        path: /etc/haproxy/haproxy.cfg
+        line: "  server {{ item }} {{ hostvars[item]['ansible_host'] }}:80 check"
+      with_items:
+        - "{{ groups['masters'] }}"
+
+    - name: Start Keepalived service 
+      ansible.builtin.systemd:
+        state: started
+        enabled: yes
+        name: keepalived
+
+    - name: Start Nginx service 
+      ansible.builtin.systemd:
+        state: started
+        enabled: yes
+        name: haproxy 

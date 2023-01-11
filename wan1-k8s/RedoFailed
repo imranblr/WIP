@@ -1,0 +1,2 @@
+ec-data02 ansible_host=10.2.10.125 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+logstash02 ansible_host=10.2.10.127 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'

@@ -1,0 +1,80 @@
+- hosts: masters
+  become: yes 
+  tasks:
+    - name: Disable Ubuntu Firewall
+      community.general.ufw:
+        state: disabled
+
+    - name: Install Nginx and Kibana 
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - nginx 
+          - kibana
+
+    - name: Start Nginx service 
+      ansible.builtin.systemd:
+        state: started
+        enabled: yes
+        name: nginx
+
+    - name: Set a common CookieName
+      ansible.builtin.lineinfile:
+        path: /etc/kibana/kibana.yml
+        line: '{{ item }}'
+      with_items:
+        - "xpack.security.cookieName: kibana-{{ ansible_hostname }}"
+        - 'elasticsearch.hosts:'
+
+    - name: Set EC Hosts to Data nodes
+      ansible.builtin.lineinfile:
+        path: /etc/kibana/kibana.yml
+        line: "  - http://{{ hostvars[item]['ansible_host'] }}:9200"
+      with_items:
+        - "{{ groups['data'] }}"
+          
+    - name: Start Kibana service 
+      ansible.builtin.systemd:
+        state: started
+        enabled: yes
+        name: kibana
+
+    - name: Setting default password for Kibana Web interface
+      shell: echo "kibanaadmin:`openssl passwd -apr1 P@ssw0rd`" | sudo tee /etc/nginx/htpasswd.users
+
+    - name: Copy ssbi.local to sites-availble
+      ansible.builtin.copy:
+        src: ./http-based-site
+        dest: /etc/nginx/sites-available/{{ ansible_hostname }}.ssbi.local
+
+    - name: Rename url to point to respective ec-masters
+      ansible.builtin.replace:
+        path: /etc/nginx/sites-available/{{ ansible_hostname }}.ssbi.local
+        regexp: 'elksvr'
+        replace: '{{ ansible_hostname }}'
+
+    - name: Creating link to the site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/{{ ansible_hostname }}.ssbi.local
+        dest: /etc/nginx/sites-enabled/{{ ansible_hostname }}.ssbi.local
+        state: link
+
+          #    - name: Update the rewrite rule in default site
+          #      ansible.builtin.lineinfile:
+          #        path: /etc/nginx/sites-available/default
+          #        insertbefore: 'try_files'
+          #        firstmatch: yes
+          #        line: "                rewrite ^/(.*)$ http://{{ansible_hostname}}.ssbi.local/$1 redirect;"
+
+    - name: Remove the default site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Reload Nginx
+      ansible.builtin.systemd:
+        state: reloaded 
+        name: nginx 

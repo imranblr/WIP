@@ -1,0 +1,12 @@
+- hosts: masters 
+  become: yes
+  #gather_facts: false
+  tasks:
+    - name: Restart elasticsearch
+      shell: service elasticsearch restart
+      #args:
+        #chdir: /home/ubuntu
+        #creates: pod_network_setup.txt
+
+    - name: Start Elasticsearch on boot up 
+      shell: update-rc.d elasticsearch defaults 95 10

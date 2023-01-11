@@ -1,0 +1,94 @@
+- hosts: masters
+  become: yes 
+  tasks:
+    - name: Add an Apt signing key
+      ansible.builtin.apt_key:
+        url: https://packages.elastic.co/GPG-KEY-elasticsearch
+        state: present
+
+    - name: Add EC Repo
+      ansible.builtin.apt_repository:
+        repo: "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+        state: present
+
+    - name: Install EC 
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - elasticsearch
+          - net-tools
+
+    - name: Check if a reboot is needed on all servers
+      register: reboot_required_file
+      stat: path=/var/run/reboot-required get_md5=no
+
+    - name: Reboot the box if kernel updated
+      reboot:
+        msg: "Reboot initiated by Ansible for kernel updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: reboot_required_file.stat.exists
+
+    - name: Bind with interface IP 
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        line: "network.host: ['{{ ansible_ssh_host }}', _local_]"
+
+    - name: Update Elasticsearch node settings
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        line: '{{ item }}'
+      with_items:
+        - 'cluster.name: ELKWAN1'
+        - 'node.name: ${HOSTNAME}' 
+        - 'node.data: true' 
+        - 'node.master: false' 
+        - 'discovery.seed_hosts: ["ec-master01", "ec-master02", "ec-master03"]'
+        - 'cluster.initial_master_nodes: ["ec-master01", "ec-master02", "ec-master03"]'
+          
+    - name: Restart elasticsearch service 
+      ansible.builtin.systemd:
+        state: restarted
+        enabled: yes
+        name: elasticsearch 
+
+    - name: Enable memory locking 
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        line: bootstrap.memory_lock: true
+
+    - name: Update the default settings
+      ansible.builtin.lineinfile:
+        path: /etc/default/elasticsearch
+        line: '{{ item }}'
+      with_items:
+        - MAX_OPEN_FILES=131070
+        - MAX_LOCKED_MEMORY=unlimited
+        - ES_HEAP_SIZE=8g
+
+    - name: Update the systemd for Memory locking 
+      ansiddble.builtin.lineinfile:
+        path: /usr/lib/systemd/system/elasticsearch.service 
+        insertafter: 'Service'
+        line: LimitMEMLOCK=infinity 
+
+    - name: Comment the cluster initialization
+      ansiddble.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: '^cluster.initial_master_nodes'
+        line: #cluster.initial_master_nodes: ["ec-master01", "ec-master02", "ec-master03"]
+
+    - name: Restart elasticsearch service and also daemon-reload to pick up config changes
+      ansible.builtin.systemd:
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+        name: elasticsearch 
+
+

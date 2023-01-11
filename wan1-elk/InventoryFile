@@ -1,0 +1,10 @@
+#ELK Cluster
+
+elk-web ansible_host=10.2.10.120 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+ec-master01 ansible_host=10.2.10.121 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+ec-master02 ansible_host=10.2.10.122 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+ec-master03 ansible_host=10.2.10.123 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+ec-data01 ansible_host=10.2.10.124 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+ec-data02 ansible_host=10.2.10.125 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+logstash01 ansible_host=10.2.10.126 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'
+logstash02 ansible_host=10.2.10.127 ansible_port=22 ansible_user='sysadmin' ansible_sudo_pass='P@ssw0rd'

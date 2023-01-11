@@ -1,0 +1,91 @@
+- hosts: all
+  become: yes
+  tasks:
+   - name: Install Containerd and other tools 
+     apt:
+       name: "{{ tools }}"
+       state: present
+       update_cache: yes
+     vars:
+       tools:
+         - containerd 
+         - apt-transport-https
+         - gnupg 
+         - net-tools 
+
+   - name: ensure containerd servie is enabled
+     service:
+       name: containerd 
+       enabled: true
+       state: started
+
+   - name: Setup Containerd as CRI  
+     command: "{{ item }}"
+     with_items:
+       - mkdir -p /etc/containerd 
+
+   - name: Capture ContainerD configuratin
+     shell: containerd config default > /etc/containerd/config.toml
+     args:
+       creates: /etc/containerd/config.toml
+
+   - name: Enable SystemdCgroup in Containerd
+     replace:
+       path: /etc/containerd/config.toml
+       regexp: '(\s+)SystemdCgroup \= false(\s+)?$'
+       replace: '\1SystemdCgroup = true'
+
+
+   - name: Restart Containerd 
+     service:
+       name: containerd 
+       daemon_reload: yes
+       state: restarted
+
+
+   - name: add Kubernetes apt-key
+     apt_key:
+       url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+       state: present
+
+   - name: add Kubernetes' APT repository
+     apt_repository:
+      repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+      filename: 'kubernetes'
+
+   - name: Install Kubernetes binaries
+     apt:
+       name: "{{ packages }}"
+       state: present
+       update_cache: yes
+     vars:
+       packages:
+         - kubelet=1.25.4-00
+         - kubeadm=1.25.4-00
+
+   - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+     shell: |
+       swapoff -a
+
+   - name: Disable SWAP in fstab to make changes permanent. (2/2)
+     replace:
+       path: /etc/fstab
+       regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+       replace: '# \1'
+
+   - name: Reload kubelet
+     service:
+       name: kubelet
+       daemon_reload: yes
+       state: restarted
+
+- hosts: masters
+  become: yes
+  tasks:
+    - name: install kubectl
+      apt:
+        name: kubectl=1.25.4-00
+        state: present
+        force: yes
+

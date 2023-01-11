@@ -1,0 +1,1 @@
+kubeadm join k8api.ssbi.local:6443 --token pa1qs9.5wu9kagmc91gp3af --discovery-token-ca-cert-hash sha256:0b23ee94fb46a39d8966f71f430e6313c68a9a91a20995426ff4f84c9a31f1c1 --control-plane --certificate-key 5327221d3a0d756ce73b0ead2d29bd67beae2ca709e9937606f831ded08da19a

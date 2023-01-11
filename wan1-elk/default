@@ -1,0 +1,11 @@
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+	location / {
+		rewrite ^(.*)$ http://ec-master01.ssbi.local/$1 redirect;
+		try_files $uri $uri/ =404;
+	}
+}
