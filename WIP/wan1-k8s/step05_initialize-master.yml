@@ -29,7 +29,7 @@
   become: yes
   tasks:
     - name: initialize the cluster
-      shell: kubeadm init --control-plane-endpoint "k8api.domaini.local:6443" --pod-network-cidr=10.244.0.0/16 | tee cluster_initialized.txt
+      shell: kubeadm init --control-plane-endpoint "k8api.ssbi.local:6443" --pod-network-cidr=10.244.0.0/16 | tee cluster_initialized.txt
       args:
         chdir: /home/ubuntu 
         creates: cluster_initialized.txt 

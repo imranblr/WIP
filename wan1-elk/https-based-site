@@ -4,10 +4,10 @@ server {
 	include snippets/self-signed.conf;
     	include snippets/ssl-params.conf;
 
-        root /var/www/elksvr.ssbi.local/html;
+        root /var/www/elksvr.domaini.local/html;
         index index.html index.htm index.nginx-debian.html;
 
-        server_name elksvr.ssbi.local www.elksvr.ssbi.local;
+        server_name elksvr.domaini.local www.elksvr.domaini.local;
 
         location / {
                # try_files $uri $uri/ =404;
@@ -24,7 +24,7 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name elksvr.ssbi.local www.elksvr.ssbi.local;
+    server_name elksvr.domaini.local www.elksvr.domaini.local;
 
     auth_basic "Restricted Access";
     auth_basic_user_file /etc/nginx/htpasswd.users;

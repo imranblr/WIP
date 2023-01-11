@@ -45,21 +45,21 @@
     - name: Setting default password for Kibana Web interface
       shell: echo "kibanaadmin:`openssl passwd -apr1 P@ssw0rd`" | sudo tee /etc/nginx/htpasswd.users
 
-    - name: Copy ssbi.local to sites-availble
+    - name: Copy domaini.local to sites-availble
       ansible.builtin.copy:
         src: ./http-based-site
-        dest: /etc/nginx/sites-available/{{ ansible_hostname }}.ssbi.local
+        dest: /etc/nginx/sites-available/{{ ansible_hostname }}.domaini.local
 
     - name: Rename url to point to respective ec-masters
       ansible.builtin.replace:
-        path: /etc/nginx/sites-available/{{ ansible_hostname }}.ssbi.local
+        path: /etc/nginx/sites-available/{{ ansible_hostname }}.domaini.local
         regexp: 'elksvr'
         replace: '{{ ansible_hostname }}'
 
     - name: Creating link to the site
       ansible.builtin.file:
-        src: /etc/nginx/sites-available/{{ ansible_hostname }}.ssbi.local
-        dest: /etc/nginx/sites-enabled/{{ ansible_hostname }}.ssbi.local
+        src: /etc/nginx/sites-available/{{ ansible_hostname }}.domaini.local
+        dest: /etc/nginx/sites-enabled/{{ ansible_hostname }}.domaini.local
         state: link
 
           #    - name: Update the rewrite rule in default site
@@ -67,7 +67,7 @@
           #        path: /etc/nginx/sites-available/default
           #        insertbefore: 'try_files'
           #        firstmatch: yes
-          #        line: "                rewrite ^/(.*)$ http://{{ansible_hostname}}.ssbi.local/$1 redirect;"
+          #        line: "                rewrite ^/(.*)$ http://{{ansible_hostname}}.domaini.local/$1 redirect;"
 
     - name: Remove the default site
       ansible.builtin.file:
